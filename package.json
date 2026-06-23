@@ -1,0 +1,61 @@
+{
+  "name": "capacitor-auth-manager-docs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Public documentation site for the capacitor-auth-manager npm package (https://www.npmjs.com/package/capacitor-auth-manager). Built with Docusaurus, deployed to Firebase Hosting / GitHub Pages.",
+  "author": {
+    "name": "Ahsan Mahmood",
+    "email": "aoneahsan@gmail.com",
+    "url": "https://aoneahsan.com"
+  },
+  "license": "MIT",
+  "homepage": "https://capacitor-auth-manager-docs.aoneahsan.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aoneahsan/capacitor-auth-manager-docs.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "docusaurus": "docusaurus",
+    "start": "docusaurus start --port 5962 --host 0.0.0.0",
+    "build": "docusaurus build",
+    "swizzle": "docusaurus swizzle",
+    "clear": "docusaurus clear",
+    "serve": "docusaurus serve --port 5963",
+    "write-translations": "docusaurus write-translations",
+    "write-heading-ids": "docusaurus write-heading-ids",
+    "typecheck": "tsc --noEmit",
+    "firebase:deploy": "yarn build && npx -y firebase-tools@latest deploy --only hosting --project capacitor-auth-manager-docs",
+    "firebase:deploy:preview": "yarn build && npx -y firebase-tools@latest hosting:channel:deploy preview --project capacitor-auth-manager-docs --expires 7d"
+  },
+  "dependencies": {
+    "@docusaurus/core": "^3.10.1",
+    "@docusaurus/preset-classic": "^3.10.1",
+    "@docusaurus/theme-mermaid": "^3.10.1",
+    "@mdx-js/react": "^3.1.1",
+    "clsx": "^2.1.1",
+    "prism-react-renderer": "^2.4.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "^3.10.1",
+    "@docusaurus/tsconfig": "^3.10.1",
+    "@docusaurus/types": "^3.10.1",
+    "typescript": "~6.0.3"
+  },
+  "browserslist": {
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 3 chrome version",
+      "last 3 firefox version",
+      "last 5 safari version"
+    ]
+  }
+}

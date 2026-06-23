@@ -1,0 +1,25 @@
+/* TEAM */
+
+Maintainer + Author: Ahsan Mahmood
+Site: https://aoneahsan.com
+Email: aoneahsan@gmail.com
+LinkedIn: https://linkedin.com/in/aoneahsan
+GitHub: https://github.com/aoneahsan
+npm: https://www.npmjs.com/~aoneahsan
+Location: Pakistan
+
+/* THANKS */
+
+To the Capacitor team at Ionic for the plugin architecture this library plugs
+into. To every OAuth and identity provider whose flows are implemented here.
+To everyone who filed an issue, sent a PR, or pointed out a typo in the docs.
+
+/* SITE */
+
+Last update: 2026-06-23
+Standards: HTML5, CSS3, Markdown, JSON-LD
+Components: Docusaurus 3, React 19, TypeScript 6
+Software: Visual Studio Code, Anthropic Claude (development assistant)
+Hosting: Firebase Hosting / GitHub Pages
+Source: https://github.com/aoneahsan/capacitor-auth-manager-docs
+Package: https://www.npmjs.com/package/capacitor-auth-manager

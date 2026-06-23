@@ -1,0 +1,89 @@
+/**
+ * Capacitor Auth Manager — brand palette
+ * Primary: indigo (identity / security)
+ * Accent: violet (decorative; used for hover/focus rings)
+ */
+
+:root {
+  --ifm-color-primary: #4f46e5;
+  --ifm-color-primary-dark: #4338ca;
+  --ifm-color-primary-darker: #3f34bf;
+  --ifm-color-primary-darkest: #342a9d;
+  --ifm-color-primary-light: #6366f1;
+  --ifm-color-primary-lighter: #7073f3;
+  --ifm-color-primary-lightest: #9092f6;
+
+  --ifm-color-secondary: #a855f7;
+  --ifm-color-success: #10b981;
+  --ifm-color-info: #6366f1;
+  --ifm-color-warning: #f59e0b;
+  --ifm-color-danger: #ef4444;
+
+  --ifm-code-font-size: 92%;
+  --ifm-font-family-base: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --ifm-heading-font-weight: 700;
+
+  --docusaurus-highlighted-code-line-bg: rgba(99, 102, 241, 0.10);
+
+  /* Soft accent surface used by callouts + hero strips */
+  --cam-surface-accent: rgba(168, 85, 247, 0.06);
+  --cam-surface-brand: rgba(99, 102, 241, 0.06);
+  /* Back-compat alias for the homepage hero CSS module */
+  --nu-surface-brand: var(--cam-surface-brand);
+}
+
+/* Dark mode overrides — keep brand recognisable, raise contrast on accent */
+[data-theme='dark'] {
+  --ifm-color-primary: #818cf8;
+  --ifm-color-primary-dark: #6366f1;
+  --ifm-color-primary-darker: #5457ee;
+  --ifm-color-primary-darkest: #4044c9;
+  --ifm-color-primary-light: #99a1fa;
+  --ifm-color-primary-lighter: #a6adfb;
+  --ifm-color-primary-lightest: #c3c8fd;
+
+  --ifm-background-color: #0b1220;
+  --ifm-background-surface-color: #131a2c;
+
+  --docusaurus-highlighted-code-line-bg: rgba(129, 140, 248, 0.18);
+}
+
+/* ---------------------------------------------------------------------------
+ * Subtle entrance animation on body content (CSS-only, respects reduced motion)
+ * ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .markdown > h1,
+  .markdown > h2 {
+    animation: cam-fade-up 420ms ease-out both;
+  }
+  @keyframes cam-fade-up {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Code block polish
+ * ------------------------------------------------------------------------- */
+.theme-code-block {
+  border-radius: 10px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Author callout used on the about-the-author page (no extra component needed)
+ * ------------------------------------------------------------------------- */
+.cam-author-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-left: 4px solid var(--ifm-color-primary);
+  border-radius: 12px;
+  background: var(--cam-surface-brand);
+  margin: 1.5rem 0;
+}
+
+.cam-author-card a {
+  font-weight: 600;
+}

@@ -1,0 +1,58 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Deploy the Docusaurus docs site to GitHub Pages.
+#
+# Free hosting for this PUBLIC docs repo. Builds with Yarn (Berry, node-modules
+# linker) and publishes ./build to Pages. The static/CNAME file pins the custom
+# domain capacitor-auth-manager-docs.aoneahsan.com.
+#
+# To activate: repo Settings → Pages → Build and deployment → Source: GitHub Actions.
+# (Firebase Hosting is an alternative — see firebase.json + .firebaserc. Only ONE
+# host should own the DNS for the custom domain at a time.)
+# ──────────────────────────────────────────────────────────────────────────
+
+name: Deploy docs to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Enable Corepack (Yarn Berry)
+        run: corepack enable
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Build
+        run: yarn build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

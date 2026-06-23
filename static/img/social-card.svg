@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Capacitor Auth Manager social card">
+  <defs>
+    <linearGradient id="cam-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="cam-mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#cam-bg)"/>
+  <g transform="translate(96 215)">
+    <path d="M100 0 L200 36 V120 C200 188 156 232 100 256 C44 232 0 188 0 120 V36 Z" fill="url(#cam-mark)"/>
+    <circle cx="100" cy="112" r="30" fill="#ffffff"/>
+    <path d="M88 132 H112 L106 176 H94 Z" fill="#ffffff"/>
+  </g>
+  <text x="360" y="270" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="68" font-weight="700">Capacitor Auth Manager</text>
+  <text x="360" y="340" fill="#c7d2fe" font-family="Inter, system-ui, sans-serif" font-size="34" font-weight="400">Universal authentication — 15 providers, framework-agnostic.</text>
+  <text x="360" y="404" fill="#a5b4fc" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="400">React · Vue · Angular · Vanilla JS · optional Capacitor</text>
+  <text x="360" y="470" fill="#818cf8" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="500">npmjs.com/package/capacitor-auth-manager · by Ahsan Mahmood</text>
+</svg>

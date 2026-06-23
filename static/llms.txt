@@ -1,0 +1,61 @@
+# Capacitor Auth Manager — Documentation Index
+
+> capacitor-auth-manager is a TypeScript-first, framework-agnostic authentication library that puts 15 sign-in providers behind one API for React, Vue, Angular, vanilla JS, and optional Capacitor (iOS/Android) apps. Author: Ahsan Mahmood (https://aoneahsan.com). npm: https://www.npmjs.com/package/capacitor-auth-manager. MIT-licensed.
+
+## About
+
+The library exposes an `auth` singleton (works like a store — no context provider needed). You call `auth.configure({ providers })` once, then `auth.signIn('<provider-id>')` from any framework. The 15 providers are: Google, Apple, Microsoft, Facebook, GitHub, Slack, LinkedIn, Firebase, email-password, username-password, phone-password, email-code (OTP), SMS (OTP), magic-link, and biometric. Security defaults include S256 PKCE on manual OAuth code flows, OIDC nonce + ID-token exp validation (signatures are NOT verified client-side — re-validate server-side), pluggable secure storage, and an AES-GCM web fallback for biometric material. The web layer implements all 15 providers (primary surface); the native Capacitor plugin is a secondary surface (iOS: 7 native providers; Android: 3).
+
+This `llms.txt` follows the [llmstxt.org](https://llmstxt.org) spec.
+
+## Getting Started
+
+- [Introduction](https://capacitor-auth-manager-docs.aoneahsan.com/intro): what it is, what it does and does not do.
+- [Installation](https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/installation): npm install + optional peers + entry points.
+- [Quick Start](https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/quick-start): configure → signIn → onAuthStateChange in 5 minutes.
+- [Configuration](https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/configuration): the full AuthManagerConfig shape.
+
+## Framework Adapters
+
+- [Vanilla JS](https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/vanilla-js): the `auth` singleton API.
+- [React](https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/react): useAuth, useAuthState, useAuthProvider, useUser, useIsAuthenticated.
+- [Vue](https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/vue): useAuth, useAuthState, useUser, useAuthProvider, useAuthConfig.
+- [Angular](https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/angular): AuthService, AuthModule, AuthGuard, NoAuthGuard.
+
+## Providers
+
+- [Overview + capability matrix](https://capacitor-auth-manager-docs.aoneahsan.com/providers/overview)
+- [Google](https://capacitor-auth-manager-docs.aoneahsan.com/providers/google)
+- [Apple](https://capacitor-auth-manager-docs.aoneahsan.com/providers/apple)
+- [Microsoft](https://capacitor-auth-manager-docs.aoneahsan.com/providers/microsoft)
+- [Facebook](https://capacitor-auth-manager-docs.aoneahsan.com/providers/facebook)
+- [GitHub](https://capacitor-auth-manager-docs.aoneahsan.com/providers/github)
+- [Slack](https://capacitor-auth-manager-docs.aoneahsan.com/providers/slack)
+- [LinkedIn](https://capacitor-auth-manager-docs.aoneahsan.com/providers/linkedin)
+- [Firebase](https://capacitor-auth-manager-docs.aoneahsan.com/providers/firebase)
+- [Email + Password](https://capacitor-auth-manager-docs.aoneahsan.com/providers/email-password)
+- [Username + Password](https://capacitor-auth-manager-docs.aoneahsan.com/providers/username-password)
+- [Phone + Password](https://capacitor-auth-manager-docs.aoneahsan.com/providers/phone-password)
+- [Email Code (OTP)](https://capacitor-auth-manager-docs.aoneahsan.com/providers/email-code)
+- [SMS (OTP)](https://capacitor-auth-manager-docs.aoneahsan.com/providers/sms)
+- [Magic Link](https://capacitor-auth-manager-docs.aoneahsan.com/providers/magic-link)
+- [Biometric](https://capacitor-auth-manager-docs.aoneahsan.com/providers/biometric)
+
+## API Reference
+
+- [The auth singleton](https://capacitor-auth-manager-docs.aoneahsan.com/api/auth-singleton): every auth.* method.
+- [Types](https://capacitor-auth-manager-docs.aoneahsan.com/api/types): AuthUser, AuthResult, AuthState, AuthManagerConfig, etc.
+- [Errors](https://capacitor-auth-manager-docs.aoneahsan.com/api/errors): AuthError, isAuthError, AuthErrorCode.
+- [Storage](https://capacitor-auth-manager-docs.aoneahsan.com/api/storage): StorageInterface, WebStorage, CapacitorPreferencesStorage.
+
+## Platforms
+
+- [Web](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/web)
+- [Android](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/android)
+- [iOS](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/ios)
+
+## More
+
+- [FAQ](https://capacitor-auth-manager-docs.aoneahsan.com/faq)
+- [Changelog](https://capacitor-auth-manager-docs.aoneahsan.com/changelog)
+- [About the author](https://capacitor-auth-manager-docs.aoneahsan.com/about-the-author)

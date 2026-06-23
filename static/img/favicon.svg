@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Capacitor Auth Manager favicon">
+  <defs>
+    <linearGradient id="cam-fav" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+  <path d="M16 2 L27 6 V15 C27 22.5 22 27.5 16 30 C10 27.5 5 22.5 5 15 V6 Z" fill="url(#cam-fav)"/>
+  <circle cx="16" cy="14" r="3.6" fill="#ffffff"/>
+  <path d="M14.4 16.5 H17.6 L16.8 22 H15.2 Z" fill="#ffffff"/>
+</svg>
