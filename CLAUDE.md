@@ -46,6 +46,11 @@ Every important rule lives in BOTH `CLAUDE.md` AND `AGENTS.md`. Update one → u
 
 `nvm` installs/updates Node + npm; `npm` for global installs (incl. yarn itself); `yarn` for ALL local project work. Never npm/pnpm for local installs. Only `yarn.lock` in the repo. Full rule: `~/.claude/CLAUDE.md`.
 
+## Gitignore Hygiene (IRON-SOLID)
+`.gitignore` stays current with the project structure — ignore only recoverable artifacts (build/`dist`/`www`/`node_modules`/logs/caches/IDE), never lose source. Custom rules always present: `*.ignore.*`, `project-record-ignore/`. This is a **PUBLIC** repo -> secrets/`.env`/keystores are NEVER tracked.
+Full rule + private/public protocol: `~/.claude/rules/project-config.md`.
+Gitignore Last Verified: 2026-06-24
+
 ## Last Updated
 
 2026-06-23
