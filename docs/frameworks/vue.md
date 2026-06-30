@@ -21,13 +21,13 @@ There is nothing to register with `app.use(...)`. The composables read from the 
 
 ```vue
 <script setup lang="ts">
-import { useAuth } from 'capacitor-auth-manager/vue';
+import { useAuth, AuthProvider } from 'capacitor-auth-manager/vue';
 
 const { user, signIn, signOut, isLoading, error } = useAuth();
 
 async function handleGoogleSignIn() {
   try {
-    await signIn('google');
+    await signIn(AuthProvider.GOOGLE);
   } catch {
     // error is also exposed via the returned `error` ref
   }
@@ -48,6 +48,10 @@ async function handleGoogleSignIn() {
 ```
 
 The state values (`user`, `isLoading`, `isAuthenticated`, `provider`, `error`) are reactive refs — in `<template>` they unwrap automatically; in `<script>` read them via `.value`.
+
+:::info Google-first (2.4.x)
+Google is the only enabled provider; `signIn` with another id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The adapter re-exports `AuthProvider` (recommended); the string `'google'` also works.
+:::
 
 ## Composables
 

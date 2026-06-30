@@ -7,6 +7,10 @@ description: "Configure the passwordless email code (OTP) provider in capacitor-
 
 # Email code (OTP) authentication
 
+:::caution Not yet available (2.4.x)
+The email-code (OTP) provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
 The email code provider is a passwordless, two-step flow: the first call asks your backend to email a one-time code, and the second call submits that code for verification. The library tracks the pending verification (metadata only, persisted across reloads) and orchestrates state; your backend generates, emails, and validates the code.
 
 ## Backend requirement

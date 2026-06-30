@@ -18,12 +18,15 @@ The singleton auto-initializes the first time it is used in a browser, so you ca
 ## Usage example
 
 ```typescript
-import { auth } from 'capacitor-auth-manager';
+import { auth, AuthProvider } from 'capacitor-auth-manager';
 
-// 1. Configure providers (field names match each provider's options interface)
+// 1. Configure Google (the enabled provider in 2.4.x; other ids throw PROVIDER_NOT_ENABLED)
 auth.configure({
   providers: {
-    google: { clientId: 'YOUR_GOOGLE_CLIENT_ID' },
+    [AuthProvider.GOOGLE]: {
+      clientId: 'YOUR_WEB_OAUTH_CLIENT_ID',
+      serverClientId: 'YOUR_WEB_OAUTH_CLIENT_ID', // required on Android for an idToken
+    },
   },
 });
 
@@ -44,8 +47,9 @@ document.querySelector('#login-button')?.addEventListener('click', async () => {
     if (auth.isAuthenticated()) {
       await auth.signOut();
     } else {
-      const result = await auth.signIn('google');
+      const result = await auth.signIn(AuthProvider.GOOGLE);
       console.log('Signed in:', result.user.email);
+      // Hand result.credential.idToken to Firebase via signInWithCredential.
     }
   } catch (error) {
     console.error('Auth failed:', error);

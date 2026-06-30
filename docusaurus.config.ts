@@ -16,7 +16,7 @@ const DOCS_REPO_URL = 'https://github.com/aoneahsan/capacitor-auth-manager-docs'
 const config: Config = {
   title: 'Capacitor Auth Manager Docs',
   tagline:
-    'Universal authentication for web and Capacitor apps — 15 providers, framework-agnostic.',
+    'Firebase-agnostic Google sign-in for web and Capacitor — one API on web, iOS, and Android.',
   favicon: 'img/favicon.svg',
 
   // Production URL — served from Firebase Hosting / GitHub Pages at the custom domain.
@@ -62,7 +62,7 @@ const config: Config = {
         name: 'Capacitor Auth Manager Documentation',
         url: SITE_URL,
         description:
-          'Documentation for capacitor-auth-manager, a framework-agnostic authentication library with 15 providers (Google, Apple, Microsoft, Facebook, GitHub, Slack, LinkedIn, Firebase, password, passwordless, biometric) for React, Vue, Angular, vanilla JS, and optional Capacitor mobile apps. Author: Ahsan Mahmood.',
+          'Documentation for capacitor-auth-manager, a Firebase-agnostic Google authentication library for Capacitor and the web — a drop-in alternative to @codetrix-studio/capacitor-google-auth. One auth.signIn(AuthProvider.GOOGLE) call returns a Google id token on web, iOS, and Android for React, Vue, Angular, and vanilla JS. Google is the enabled provider in 2.4.x; more providers are being added one at a time. Author: Ahsan Mahmood.',
         inLanguage: 'en',
         publisher: {
           '@type': 'Person',
@@ -96,7 +96,7 @@ const config: Config = {
           url: 'https://aoneahsan.com',
         },
         description:
-          'Framework-agnostic authentication manager with 15 providers and optional Capacitor support. One API across React, Vue, Angular, and vanilla JS. MIT-licensed.',
+          'Firebase-agnostic Google authentication for Capacitor and the web — a drop-in alternative to @codetrix-studio/capacitor-google-auth. One API across web, iOS, Android, React, Vue, Angular, and vanilla JS. Google is enabled in 2.4.x; more providers are added one at a time. MIT-licensed.',
         license: 'https://opensource.org/licenses/MIT',
       }),
     },
@@ -167,12 +167,12 @@ const config: Config = {
       {
         name: 'description',
         content:
-          'Documentation for capacitor-auth-manager — universal authentication with 15 providers for React, Vue, Angular, vanilla JS, and optional Capacitor apps. Maintained by Ahsan Mahmood.',
+          'Documentation for capacitor-auth-manager — Firebase-agnostic Google sign-in for the web and Capacitor (iOS/Android), a drop-in alternative to @codetrix-studio/capacitor-google-auth. Google is enabled in 2.4.x; more providers coming one at a time. Works with React, Vue, Angular, and vanilla JS. Maintained by Ahsan Mahmood.',
       },
       {
         name: 'keywords',
         content:
-          'capacitor auth, authentication, oauth, google sign in, apple sign in, microsoft, facebook login, github oauth, slack, linkedin, firebase auth, magic link, passwordless, sms otp, biometric auth, react auth, vue auth, angular auth, pkce, capacitor plugin',
+          'capacitor google auth, google sign in, capacitor-google-auth alternative, codetrix capacitor google auth, firebase-agnostic google auth, google identity services, credential manager, googlesignin ios, capacitor authentication plugin, signInWithCredential, react google auth, vue google auth, angular google auth, capacitor oauth',
       },
       { name: 'author', content: 'Ahsan Mahmood' },
       {

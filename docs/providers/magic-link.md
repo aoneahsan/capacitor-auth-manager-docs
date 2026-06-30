@@ -7,6 +7,10 @@ description: "Configure the passwordless email magic link provider in capacitor-
 
 # Email magic link authentication
 
+:::caution Not yet available (2.4.x)
+The magic-link provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
 The magic link provider is a passwordless flow: a call asks your backend to email a sign-in link, and sign-in completes when the user clicks that link and your app loads the callback page. The library generates the link token, tracks the pending verification (persisted so it survives the redirect), and orchestrates state; your backend delivers the email.
 
 ## Backend requirement

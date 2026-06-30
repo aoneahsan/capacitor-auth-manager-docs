@@ -15,6 +15,10 @@ import { AuthService, AuthModule, AuthGuard } from 'capacitor-auth-manager/angul
 
 `AuthService` is `providedIn: 'root'`, so it is available without `AuthModule`. Use `AuthModule.forRoot(...)` when you want to pass provider configuration at bootstrap.
 
+:::info Google-first (2.4.x)
+Google is the only enabled provider; `signIn` with another id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The adapter re-exports the `AuthProvider` enum (recommended); the string `'google'` also works.
+:::
+
 ## Module setup
 
 ```typescript

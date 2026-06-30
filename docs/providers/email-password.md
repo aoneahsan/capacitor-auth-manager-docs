@@ -7,6 +7,10 @@ description: "Configure the email and password provider in capacitor-auth-manage
 
 # Email and password authentication
 
+:::caution Not yet available (2.4.x)
+The email-and-password provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
 The email and password provider signs users in by sending an email/password pair to a backend you operate, which verifies the credentials and returns a user plus tokens. The library orchestrates the request and the resulting auth state; it is not itself the credential store.
 
 ## Backend requirement

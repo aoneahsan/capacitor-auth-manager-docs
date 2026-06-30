@@ -7,6 +7,10 @@ description: Configure and use the Firebase provider in capacitor-auth-manager. 
 
 # Firebase authentication
 
+:::caution Not yet available (2.4.x)
+The Firebase provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. (This package is Firebase-agnostic — to use Firebase today, sign in with the Google provider and hand the id token to `signInWithCredential` yourself; see the [Google provider](/providers/google).) See the [provider overview](/providers/overview).
+:::
+
 The Firebase provider signs users in with the Firebase JS SDK. It initializes a Firebase app from your config and dispatches sign-in to a sub-method (Google, Facebook, GitHub, Microsoft, Apple, email/password, or anonymous), defaulting to the `defaultMethod` you configure.
 
 ## When you need a backend

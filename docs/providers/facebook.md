@@ -7,6 +7,10 @@ description: Configure and use the Facebook provider in capacitor-auth-manager. 
 
 # Facebook authentication
 
+:::caution Not yet available (2.4.x)
+The Facebook provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
 The Facebook provider signs users in with the Facebook JS SDK (`window.FB`). The provider loads the SDK from `connect.facebook.net` and initializes it with your app ID and Graph API version.
 
 ## When you need a backend

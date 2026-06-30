@@ -7,6 +7,10 @@ description: Configure and use the GitHub provider in capacitor-auth-manager. Gi
 
 # GitHub authentication
 
+:::caution Not yet available (2.4.x)
+The GitHub provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
 The GitHub provider signs users in with GitHub's OAuth authorization-code flow. The browser obtains an authorization `code`, but the code-to-token exchange must happen on a server.
 
 ## When you need a backend

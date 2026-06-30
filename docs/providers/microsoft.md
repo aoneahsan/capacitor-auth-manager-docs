@@ -7,6 +7,10 @@ description: Configure and use the Microsoft provider in capacitor-auth-manager.
 
 # Microsoft authentication
 
+:::caution Not yet available (2.4.x)
+The Microsoft provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
 The Microsoft provider signs users in with the Microsoft Authentication Library (MSAL) for browsers (`@azure/msal-browser`, read from `window.msal`). It drives MSAL's popup / redirect sign-in and silent token acquisition.
 
 ## When you need a backend

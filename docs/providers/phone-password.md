@@ -7,6 +7,10 @@ description: "Configure the phone number and password provider in capacitor-auth
 
 # Phone and password authentication
 
+:::caution Not yet available (2.4.x)
+The phone-and-password provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
 The phone and password provider signs users in with a phone number and password, verified by a backend you operate. It optionally supports an SMS phone-verification step before completing sign-in. The library orchestrates the requests; it is not the credential store.
 
 ## Backend requirement

@@ -7,17 +7,25 @@ description: Common questions about capacitor-auth-manager — Capacitor require
 
 # Frequently asked questions
 
+## Which providers are available right now?
+
+Only **Google** (as of 2.4.x). It works on web, iOS, and Android. The package is being brought to production one provider at a time; the other 14 providers' code is in the repo but un-registered, so calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. See the [provider overview](/providers/overview).
+
+## How is this different from `@codetrix-studio/capacitor-google-auth`?
+
+It does the same job — native Google sign-in returning an id token you hand to Firebase — but it's Firebase-agnostic (no `firebase` dependency pulled in), uses the modern Android **Credential Manager** and **GoogleSignIn** SDKs, keeps the **same `signIn` call on web, iOS, and Android**, and is yours to maintain. The id token moves from `result.authentication.idToken` to `result.credential.idToken`. See the [migration guide](/providers/google#migrating-from-codetrix-studiocapacitor-google-auth).
+
 ## Do I need Capacitor to use this?
 
-No. `capacitor-auth-manager` runs in any web app — the web/provider layer is the primary, fully-implemented surface. Capacitor is optional; you add `@capacitor/core` and the native plugin only when you ship an iOS or Android build.
+No. `capacitor-auth-manager` runs in any web app — Google sign-in there uses Google Identity Services. Capacitor is optional; you add `@capacitor/core` and run `npx cap sync` only when you ship an iOS or Android build.
 
 ## Does it verify ID tokens for me?
 
 No. The library validates an OIDC `nonce` and the ID token's `exp` claim, but it does **not** verify the token's signature in the browser. Re-validate any ID token against the provider's JWKS on your server before trusting its claims. This is a deliberate, honest limitation — client-side signature verification gives a false sense of security.
 
-## Which providers need a backend?
+## Does Google sign-in need a backend?
 
-GitHub needs a server-side `tokenExchangeProxy` (GitHub blocks browser-side `code` → token exchange). The password providers (email/username/phone), the one-time-code providers (email code, SMS), and magic link all call endpoints you host. Google, Apple, Microsoft, Facebook, Firebase, Slack, and LinkedIn complete in the browser (Slack/LinkedIn can use an optional server). See the [provider overview](/providers/overview) for the full table.
+No. On the web it uses the Google Identity Services **id-token** flow (no client secret, no server). On iOS (GoogleSignIn) and Android (Credential Manager) the native SDK handles it. You only involve a server if you opt into a `serverAuthCode` (iOS) and exchange it for refresh tokens — and that exchange must happen on your server, never in the app/browser.
 
 ## Do I need a context provider or wrapper component?
 
@@ -31,9 +39,9 @@ Yes. The package sets `sideEffects: false` and loads each provider dynamically, 
 
 By default on web, in `localStorage`, which any XSS or third-party script on the origin can read. On native, inject `CapacitorPreferencesStorage` (needs the optional `@capacitor/preferences` peer) so tokens live in native key-value storage. For secrecy at rest, supply a Keychain/Keystore-backed `StorageInterface`. See [storage](/api/storage).
 
-## Are all 15 providers available on iOS and Android?
+## Does Google sign-in work the same on web, iOS, and Android?
 
-Not natively. The web layer implements all 15. iOS ships 7 native providers (Apple, Facebook, GitHub, Google, LinkedIn, Microsoft, Slack) plus a web-OAuth fallback; Android ships 3 (Google, Facebook, Microsoft). The native plugin is a secondary surface — validate any native flow on a real device before relying on it.
+Yes — that's the point. The same `auth.signIn(AuthProvider.GOOGLE)` call dispatches to Google Identity Services (web), GoogleSignIn (iOS), or Credential Manager (Android), and `result.credential.idToken` is populated on every platform. The Swift/Java native sources are written to the official SDK contracts but are not compiled in CI — validate a new version on a real device before rolling it out widely.
 
 ## Which frameworks are supported?
 

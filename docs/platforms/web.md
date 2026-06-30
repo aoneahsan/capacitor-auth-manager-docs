@@ -2,47 +2,39 @@
 id: web
 title: Web platform
 sidebar_label: Web
-description: How capacitor-auth-manager runs on the web — its primary surface — covering all 15 providers, which need a backend, PKCE on manual OAuth flows, and the storage default.
+description: How capacitor-auth-manager runs Google sign-in on the web with Google Identity Services — no backend required, returning an id token you hand to Firebase.
 ---
 
 # Web platform
 
-The web is capacitor-auth-manager's primary, fully-implemented surface. The package is a plain TypeScript library: it runs in any browser without Capacitor, and the singleton auto-initializes when `window` exists. All 15 providers ship a web implementation, and the web/provider orchestration layer is the strongest part of the package.
+The web is one of capacitor-auth-manager's three first-class Google surfaces (web, iOS, Android). The package is a plain TypeScript library: it runs in any browser without Capacitor, and the singleton auto-initializes when `window` exists. On the web, `auth.signIn(AuthProvider.GOOGLE)` uses **Google Identity Services** (the id-token flow), so **no client secret and no backend** are required.
 
 ```typescript
-import { auth } from 'capacitor-auth-manager';
+import { auth, AuthProvider } from 'capacitor-auth-manager';
 
-auth.configure({ providers: { google: { clientId: 'YOUR_CLIENT_ID' } } });
-await auth.signIn('google');
+auth.configure({ providers: { [AuthProvider.GOOGLE]: { clientId: 'YOUR_WEB_OAUTH_CLIENT_ID' } } });
+const result = await auth.signIn(AuthProvider.GOOGLE);
+const idToken = result.credential.idToken; // web returns an idToken (no accessToken)
 ```
 
-## The 15 web providers
+:::info Google-first (2.4.x)
+Google is the only enabled provider. Other provider ids throw `AuthErrorCode.PROVIDER_NOT_ENABLED`. See the [provider overview](/providers/overview).
+:::
 
-| Provider | Backend required? |
-|----------|-------------------|
-| Google | No — Google Identity Services manages PKCE in the browser. |
-| Apple | No for sign-in; re-validate the ID token server-side. |
-| Microsoft | No — uses MSAL Browser (must be loaded on the page). |
-| Facebook | No — uses the Facebook JS SDK. |
-| GitHub | Yes — set `tokenExchangeProxy`; GitHub blocks in-browser code exchange. |
-| Slack | Optional — manual code flow plus a real profile fetch. |
-| LinkedIn | Optional — manual code flow plus a real profile fetch. |
-| Firebase | No — uses the Firebase JS SDK. |
-| Email + Password | Yes — credential verify/persist endpoint. |
-| Phone + Password | Yes — credential verify endpoint. |
-| Username + Password | Yes — credential verify (plus optional uniqueness). |
-| Email Code (OTP) | Yes — send/verify endpoint. |
-| SMS (OTP) | Yes — Twilio / Firebase / custom backend. |
-| Magic Link | Yes — send/verify endpoints. |
-| Biometric | No — device-local, with an AES-GCM web fallback. |
+## Google on the web
 
-## Which providers need a backend
+| What | Detail |
+|---|---|
+| Mechanism | Google Identity Services (GIS) id-token flow |
+| Backend required? | No — GIS manages the flow; no client secret needed |
+| Returns | `idToken` only (no `accessToken`) |
+| Firebase handoff | `signInWithCredential(getAuth(), GoogleAuthProvider.credential(result.credential.idToken))` |
 
-The "Backend required?" column is the thing to plan around. Social SDK providers (Google, Microsoft, Facebook, Firebase, and Apple sign-in) complete in the browser. GitHub always needs a server-side token-exchange proxy — without `tokenExchangeProxy` you get a clear `auth/missing-config` error. Credential and passwordless flows (email/phone/username + password, email/SMS codes, magic link) need your endpoint to verify and persist credentials. Slack and LinkedIn run a manual authorization-code flow that can complete client-side but typically pairs with your redirect handler.
+If One-Tap is suppressed (cooldown), render Google's official button via the provider's `renderButton(element)` escape hatch, or fall back to your own Firebase popup on web. For Google API calls from the browser, use the GIS token client separately.
 
-## PKCE on manual OAuth flows
+## Honest limitation: ID tokens are not verified client-side
 
-The manual authorization-code flows (Slack, LinkedIn) send a SHA-256 (`S256`) PKCE code challenge/verifier per RFC 7636, and OIDC `nonce` plus the ID-token `exp` claim are validated. Important honest limitation: the library does not verify ID-token signatures in the browser. Treat any ID token as untrusted until your server re-validates it — use `auth.getIdToken()` to fetch one for server-side verification.
+The library validates an OIDC `nonce` and the ID token's `exp` claim, but it does **not** verify the token's signature in the browser. Treat any ID token as untrusted until your server (or Firebase) re-validates it.
 
 ## Storage default
 

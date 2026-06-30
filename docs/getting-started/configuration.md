@@ -9,13 +9,21 @@ description: The full auth.configure() shape for capacitor-auth-manager — prov
 
 `auth.configure()` (and `auth.initialize()`) accept one `AuthManagerConfig` object. Every field is optional; you typically set `providers` plus a couple of globals. Calling `configure` more than once merges into the existing config, so you can register providers incrementally.
 
+:::info Google-first (2.4.x)
+Only Google is enabled today, so the `providers` map below configures Google. Adding another provider id does not make it work yet — `auth.signIn()` with a non-Google id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. Use the [`AuthProvider` enum](/api/types#authprovider) (recommended); the string `'google'` also works.
+:::
+
 ```typescript
-import { auth } from 'capacitor-auth-manager';
+import { auth, AuthProvider } from 'capacitor-auth-manager';
 
 auth.configure({
   providers: {
-    google: { clientId: 'YOUR_CLIENT_ID', scopes: ['email', 'profile'] },
-    apple: { clientId: 'YOUR_SERVICE_ID', redirectUri: 'https://app.example.com/auth/callback' },
+    [AuthProvider.GOOGLE]: {
+      clientId: 'YOUR_WEB_OAUTH_CLIENT_ID',        // web + Android serverClientId fallback
+      serverClientId: 'YOUR_WEB_OAUTH_CLIENT_ID',  // REQUIRED on Android for an idToken
+      iosClientId: 'YOUR_IOS_OAUTH_CLIENT_ID',     // iOS (or GIDClientID in Info.plist)
+      scopes: ['email', 'profile'],
+    },
   },
   persistence: 'local',
   autoRefreshToken: true,
@@ -58,7 +66,7 @@ Capacitor Preferences is not hardware-encrypted. For secrecy at rest, supply you
 
 ## Per-provider options
 
-Each provider id under `providers` takes its own typed options interface (for example `GoogleAuthOptions`, `AppleAuthOptions`). The required fields differ per provider — see each provider page under [Providers](/providers/overview). A backend-dependent provider (password, email-code, SMS, magic link) also points at the endpoint(s) you host.
+Each provider id under `providers` takes its own typed options interface. Today that means `GoogleAuthOptions` (`clientId`, `serverClientId`, `iosClientId`, `scopes`, `hostedDomain`, `loginHint`, `filterByAuthorizedAccounts`, `autoSelectEnabled`, `nonce`) — see the [Google provider page](/providers/google) for the full table. The other providers' option interfaces exist in the types but their providers are not enabled yet.
 
 ## Related
 

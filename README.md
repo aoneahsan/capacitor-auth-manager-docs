@@ -1,6 +1,6 @@
 # Capacitor Auth Manager — Documentation
 
-Public documentation site for the [`capacitor-auth-manager`](https://www.npmjs.com/package/capacitor-auth-manager) npm package — a framework-agnostic authentication library with 15 providers for React, Vue, Angular, vanilla JS, and optional Capacitor apps.
+Public documentation site for the [`capacitor-auth-manager`](https://www.npmjs.com/package/capacitor-auth-manager) npm package — a Firebase-agnostic **Google authentication** library for Capacitor and the web (a drop-in alternative to `@codetrix-studio/capacitor-google-auth`). One `signIn` call on web, iOS, and Android, for React, Vue, Angular, and vanilla JS. Google is the enabled provider in 2.4.x; more providers are added one at a time.
 
 Built with [Docusaurus 3](https://docusaurus.io/). Deployed to Firebase Hosting / GitHub Pages.
 
@@ -31,7 +31,7 @@ Only one host should own the DNS record at a time.
 
 ## Content accuracy
 
-Every API fact in these docs comes from the package's real `src/`. No invented method names or parameters. Honest framing: the docs state what each provider does NOT do (e.g. ID tokens are not verified client-side; GitHub needs a backend proxy; the native plugin is a secondary surface).
+Every API fact in these docs comes from the package's real `src/` and `Readme.md`. No invented method names or parameters. Honest framing: the docs lead with Google (the only enabled provider in 2.4.x), mark every other provider "not yet available — coming one at a time" (they throw `PROVIDER_NOT_ENABLED`), and state limitations plainly (id-token signatures are not verified client-side; the web flow returns an id token only; the native Swift/Java sources are not compiled in CI).
 
 ## License
 

@@ -2,40 +2,63 @@
 id: quick-start
 title: Quick Start
 sidebar_label: Quick Start
-description: Configure a provider and sign a user in with capacitor-auth-manager in about five minutes, in vanilla JS or React.
+description: Configure Google and sign a user in with capacitor-auth-manager in about five minutes — the same call on web, iOS, and Android — then hand the credential to Firebase.
 ---
 
 # Quick Start
 
-This walks from a fresh install to a signed-in user. The example uses Google because it completes in the browser with no backend, but every provider follows the same `configure` → `signIn` → `onAuthStateChange` shape.
+This walks from a fresh install to a signed-in Google user, then hands the credential to Firebase. The **same `signIn(AuthProvider.GOOGLE)` call works on web, iOS, and Android** — native dispatch picks the right Google SDK for you.
 
-## 1. Configure a provider
+:::info Google-first (2.4.x)
+Google is the only enabled provider right now. Any other provider id throws `AuthErrorCode.PROVIDER_NOT_ENABLED` until it is re-enabled. See the [provider overview](/providers/overview).
+:::
 
-Configuration is a one-time call. The keys under `providers` are provider ids; the values match each provider's typed options interface.
+## 1. Configure Google
+
+Configuration is a one-time call. Use the exported **`AuthProvider` enum** (recommended — typo-safe; the plain string `'google'` also works).
 
 ```typescript
-import { auth } from 'capacitor-auth-manager';
+import { auth, AuthProvider } from 'capacitor-auth-manager';
 
 auth.configure({
   providers: {
-    google: {
-      clientId: 'YOUR_GOOGLE_CLIENT_ID',
-      scopes: ['email', 'profile'],
+    [AuthProvider.GOOGLE]: {
+      clientId: 'YOUR_WEB_OAUTH_CLIENT_ID',        // web + Android serverClientId fallback
+      serverClientId: 'YOUR_WEB_OAUTH_CLIENT_ID',  // REQUIRED on Android to receive an idToken
+      iosClientId: 'YOUR_IOS_OAUTH_CLIENT_ID',     // iOS (or set GIDClientID in Info.plist)
     },
   },
+  persistence: 'local',
 });
 ```
 
+`serverClientId` is the **Web** OAuth client id; Android's Credential Manager needs it to return an id token. See the [Google provider page](/providers/google) for the full native setup (SHA-1/256 on Android, the reversed-client-id URL scheme on iOS).
+
 ## 2. Sign in
 
-`signIn` accepts a provider id string, or an object when you need to pass credentials or per-call options. It resolves to an `AuthResult` containing the user and the credential.
+The same call runs on every platform and resolves to an `AuthResult`. The `idToken` field is populated on web, iOS, and Android.
 
 ```typescript
-const result = await auth.signIn('google');
+const result = await auth.signIn(AuthProvider.GOOGLE);
+const idToken = result.credential.idToken;     // present on web, iOS, and Android
 console.log('Welcome', result.user.displayName);
 ```
 
-## 3. React to auth state
+## 3. Hand the credential to Firebase (identical on every platform)
+
+The package is Firebase-agnostic — it does not bundle Firebase. You take the Google id token and call `signInWithCredential` yourself. This is the same code on web and native.
+
+```typescript
+import { getAuth, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+
+const result = await auth.signIn(AuthProvider.GOOGLE);
+await signInWithCredential(
+  getAuth(),
+  GoogleAuthProvider.credential(result.credential.idToken),
+);
+```
+
+## 4. React to auth state
 
 `onAuthStateChange` calls your listener immediately with the current state, then on every change. It returns an unsubscribe function. The state shape is `{ user, isLoading, isAuthenticated, provider }` — it carries no raw tokens.
 
@@ -52,7 +75,7 @@ const unsubscribe = auth.onAuthStateChange((state) => {
 unsubscribe();
 ```
 
-## 4. Sign out
+## 5. Sign out
 
 ```typescript
 await auth.signOut();
@@ -63,7 +86,7 @@ await auth.signOut();
 No context provider is needed — import the hook and use it. The hook subscribes to the singleton for you.
 
 ```tsx
-import { useAuth } from 'capacitor-auth-manager/react';
+import { useAuth, AuthProvider } from 'capacitor-auth-manager/react';
 
 function LoginButton() {
   const { user, signIn, signOut, isLoading } = useAuth();
@@ -77,15 +100,16 @@ function LoginButton() {
       </>
     );
   }
-  return <button onClick={() => signIn('google')}>Sign in with Google</button>;
+  return <button onClick={() => signIn(AuthProvider.GOOGLE)}>Sign in with Google</button>;
 }
 ```
 
-If you call the hooks before `auth.configure()` has run, point `configure` at your providers as early as possible in app startup (for example in your entry module) so the first render already has provider config.
+Call `auth.configure()` as early as possible in app startup (for example in your entry module) so the first render already has provider config.
 
 ## Where to go next
 
+- [Google provider](/providers/google) — configuration options, native (Android/iOS) setup, and the per-platform token table.
 - [Configuration](/getting-started/configuration) — every option `auth.configure()` accepts.
-- [Provider overview](/providers/overview) — which providers need a backend and what each one supports.
+- [Migrating from `@codetrix-studio/capacitor-google-auth`](/providers/google#migrating-from-codetrix-studiocapacitor-google-auth).
 - Framework guides: [React](/frameworks/react) · [Vue](/frameworks/vue) · [Angular](/frameworks/angular) · [Vanilla JS](/frameworks/vanilla-js).
 - [API reference](/api/auth-singleton).

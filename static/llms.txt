@@ -1,10 +1,14 @@
 # Capacitor Auth Manager — Documentation Index
 
-> capacitor-auth-manager is a TypeScript-first, framework-agnostic authentication library that puts 15 sign-in providers behind one API for React, Vue, Angular, vanilla JS, and optional Capacitor (iOS/Android) apps. Author: Ahsan Mahmood (https://aoneahsan.com). npm: https://www.npmjs.com/package/capacitor-auth-manager. MIT-licensed.
+> capacitor-auth-manager (v2.4.1) is a Firebase-agnostic Google authentication library for Capacitor and the web — a drop-in alternative to @codetrix-studio/capacitor-google-auth. One auth.signIn(AuthProvider.GOOGLE) call returns a Google id token on web, iOS, and Android, which you hand to Firebase. Works with React, Vue, Angular, and vanilla JS. Author: Ahsan Mahmood (https://aoneahsan.com). npm: https://www.npmjs.com/package/capacitor-auth-manager. MIT-licensed.
 
 ## About
 
-The library exposes an `auth` singleton (works like a store — no context provider needed). You call `auth.configure({ providers })` once, then `auth.signIn('<provider-id>')` from any framework. The 15 providers are: Google, Apple, Microsoft, Facebook, GitHub, Slack, LinkedIn, Firebase, email-password, username-password, phone-password, email-code (OTP), SMS (OTP), magic-link, and biometric. Security defaults include S256 PKCE on manual OAuth code flows, OIDC nonce + ID-token exp validation (signatures are NOT verified client-side — re-validate server-side), pluggable secure storage, and an AES-GCM web fallback for biometric material. The web layer implements all 15 providers (primary surface); the native Capacitor plugin is a secondary surface (iOS: 7 native providers; Android: 3).
+The library exposes an `auth` singleton (works like a store — no context provider needed). You call `auth.configure({ providers })` once, then `auth.signIn(AuthProvider.GOOGLE)` from any framework. The SAME call dispatches natively to GoogleSignIn on iOS, the Android Credential Manager on Android, and Google Identity Services on the web, and returns `result.credential.idToken` on every platform. You then hand it to Firebase: `signInWithCredential(getAuth(), GoogleAuthProvider.credential(result.credential.idToken))`. The package pulls in no `firebase` dependency, and persists no secrets by default; the web flow returns an id token only (no client secret, no backend required).
+
+Status (2.4.x): GOOGLE-FIRST. Google is the only ENABLED provider (web + iOS + Android). The other 14 providers (apple, microsoft, facebook, github, slack, linkedin, firebase, magic-link, sms, email-password, username-password, phone-password, email-code, biometric) are un-registered — calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED` — and are being re-enabled one at a time. Treat every non-Google provider page as a roadmap reference, not a working feature.
+
+Config: `auth.configure({ providers: { [AuthProvider.GOOGLE]: { clientId, serverClientId, iosClientId } } })`. `serverClientId` is the Web OAuth client id (REQUIRED on Android to return an id token). iOS needs GIDClientID in Info.plist + the reversed-client-id URL scheme; Android needs SHA-1/256 fingerprints in the console + a Google account on the device. The library validates an OIDC nonce + the id token's exp claim but does NOT verify the signature client-side — re-validate via your server or Firebase.
 
 This `llms.txt` follows the [llmstxt.org](https://llmstxt.org) spec.
 
@@ -24,8 +28,11 @@ This `llms.txt` follows the [llmstxt.org](https://llmstxt.org) spec.
 
 ## Providers
 
-- [Overview + capability matrix](https://capacitor-auth-manager-docs.aoneahsan.com/providers/overview)
-- [Google](https://capacitor-auth-manager-docs.aoneahsan.com/providers/google)
+- [Overview + status matrix](https://capacitor-auth-manager-docs.aoneahsan.com/providers/overview)
+- [Google](https://capacitor-auth-manager-docs.aoneahsan.com/providers/google) — ENABLED (web + iOS + Android)
+
+The pages below are roadmap references for providers that are NOT yet enabled (they throw `PROVIDER_NOT_ENABLED`):
+
 - [Apple](https://capacitor-auth-manager-docs.aoneahsan.com/providers/apple)
 - [Microsoft](https://capacitor-auth-manager-docs.aoneahsan.com/providers/microsoft)
 - [Facebook](https://capacitor-auth-manager-docs.aoneahsan.com/providers/facebook)

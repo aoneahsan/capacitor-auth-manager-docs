@@ -65,13 +65,14 @@ function isAuthError(error: unknown): error is AuthError;
 | OAuth, popup & redirect | `auth/popup-blocked`, `auth/popup-closed-by-user`, `auth/redirect-cancelled-by-user`, `auth/missing-redirect-url`, `auth/invalid-state`, `auth/unauthorized-domain`, `auth/access-denied`, `auth/consent-required`, `auth/invalid-grant`, `auth/user-cancelled` |
 | PKCE & nonce | `auth/missing-code-verifier`, `auth/invalid-code-verifier`, `auth/missing-nonce`, `auth/invalid-nonce`, `auth/missing-or-invalid-nonce` |
 | Biometric | `auth/biometric-not-available`, `auth/biometric-not-enrolled`, `auth/biometric-authentication-failed`, `auth/biometric-lockout` |
-| Provider & configuration | `auth/operation-not-allowed`, `auth/unsupported-provider`, `auth/missing-configuration`, `auth/missing-config`, `auth/provider-not-initialized`, `auth/provider-init-failed`, `auth/no-auth-session`, `auth/not-authenticated` |
+| Provider & configuration | `auth/provider-not-enabled`, `auth/operation-not-allowed`, `auth/unsupported-provider`, `auth/missing-configuration`, `auth/missing-config`, `auth/provider-not-initialized`, `auth/provider-init-failed`, `auth/no-auth-session`, `auth/not-authenticated` |
 | Tokens | `auth/invalid-user-token`, `auth/token-expired`, `auth/user-token-expired`, `auth/invalid-token`, `auth/token-refresh-failed`, `auth/no-refresh-token` |
 | Network & server | `auth/network-error`, `auth/too-many-requests`, `auth/quota-exceeded`, `auth/server-error`, `auth/temporarily-unavailable`, `auth/internal-error`, `auth/captcha-check-failed` |
 | Storage | `auth/keychain-error`, `auth/storage-error`, `auth/no-stored-credentials` |
 
 Two notes on accuracy:
 
+- In 2.4.x only **Google** is enabled. Calling `signIn` (or any operation) with a non-Google provider id throws `AuthErrorCode.PROVIDER_NOT_ENABLED` (`auth/provider-not-enabled`). The other providers are re-enabled one at a time — see the [provider overview](/providers/overview).
 - Account-management methods (`linkAccount`, `unlinkAccount`, `revokeAccess`, `getIdToken`, `updateProfile`, `deleteAccount`) throw `AuthErrorCode.OPERATION_NOT_ALLOWED` when the active provider does not implement them, and `AuthErrorCode.NO_AUTH_SESSION` when there is no session.
 - `refreshToken()` throws the string code `auth/operation-not-supported` when a provider cannot refresh. That literal is not a member of the `AuthErrorCode` enum — match on the string if you handle it.
 

@@ -2,12 +2,21 @@
 id: changelog
 title: Changelog
 sidebar_label: Changelog
-description: Release history for capacitor-auth-manager — versions 2.4.0, 2.3.0, and 2.2.0, latest first.
+description: Release history for capacitor-auth-manager — the 2.4.1 Google-first release, plus 2.4.0, 2.3.0, and 2.2.0, latest first.
 ---
 
 # Changelog
 
-Release notes for `capacitor-auth-manager`, latest first. This mirrors the package's [full CHANGELOG](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/CHANGELOG.md), which follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/). There are 15 web providers across all of these releases.
+Release notes for `capacitor-auth-manager`, latest first. This mirrors the package's [full CHANGELOG](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/CHANGELOG.md), which follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
+
+## 2.4.1 — Google-first
+
+The package is repositioned as a **Firebase-agnostic Google authentication** plugin — a drop-in alternative to `@codetrix-studio/capacitor-google-auth` — and brought to production **one provider at a time**.
+
+- **Google is the only enabled provider.** `auth.signIn(AuthProvider.GOOGLE)` dispatches natively to GoogleSignIn (iOS), Credential Manager (Android), and Google Identity Services (web), returning `result.credential.idToken` on every platform for the Firebase `signInWithCredential` handoff.
+- The other 14 providers (apple, microsoft, facebook, github, slack, linkedin, firebase, magic-link, sms, email/phone/username-password, email-code, biometric) are **un-registered** — calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. They are re-enabled and verified on device one at a time.
+- Enum-first usage is recommended: `import { auth, AuthProvider } from 'capacitor-auth-manager'`. The string `'google'` still works.
+- No secrets are persisted by default; the web flow returns an id token only (no client secret, no backend required).
 
 ## 2.4.0 — 2026-05-27
 

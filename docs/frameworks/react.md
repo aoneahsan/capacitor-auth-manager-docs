@@ -20,7 +20,7 @@ There is nothing to wrap your app in. The hooks read from the global `auth` sing
 ## Usage example
 
 ```tsx
-import { useAuth } from 'capacitor-auth-manager/react';
+import { useAuth, AuthProvider } from 'capacitor-auth-manager/react';
 
 function LoginButton() {
   const { user, signIn, signOut, isLoading, error } = useAuth();
@@ -38,12 +38,16 @@ function LoginButton() {
 
   return (
     <div>
-      <button onClick={() => signIn('google')}>Sign In with Google</button>
+      <button onClick={() => signIn(AuthProvider.GOOGLE)}>Sign In with Google</button>
       {error && <p role="alert">{error.message}</p>}
     </div>
   );
 }
 ```
+
+:::info Google-first (2.4.x)
+Google is the only enabled provider; `signIn` with another id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The adapter re-exports `AuthProvider` (recommended); the string `'google'` also works.
+:::
 
 ## Hooks
 

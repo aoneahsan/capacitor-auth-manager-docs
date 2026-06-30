@@ -2,51 +2,57 @@
 id: ios
 title: iOS platform
 sidebar_label: iOS
-description: Using capacitor-auth-manager on iOS via Capacitor (deployment target 14) — the native providers shipped, Face ID and Touch ID, and URL scheme configuration notes.
+description: Using capacitor-auth-manager on iOS via Capacitor — native Google sign-in through the GoogleSignIn SDK, returning an id token (plus access token) you hand to Firebase.
 ---
 
 # iOS platform
 
-On iOS, capacitor-auth-manager runs through an optional Capacitor plugin. As on Android, the native layer is a **secondary surface**: the web/provider orchestration is the primary, fully-implemented path, and you should validate any native flow against the platform code before relying on it. Native iOS support requires Capacitor (`@capacitor/core` `^7` or `^8`), with an iOS deployment target of 14.
+On iOS, capacitor-auth-manager runs **native Google sign-in** through the **GoogleSignIn** SDK. The same `auth.signIn(AuthProvider.GOOGLE)` call you use on web and Android runs here too. Native iOS support requires Capacitor (`@capacitor/core` `^7` or `^8`) and `npx cap sync`.
 
-## Native providers shipped
+:::info Google-first (2.4.x)
+Google is the only enabled provider. The iOS source also ships scaffolding for other providers, but they are not registered — `auth.signIn()` with a non-Google id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`.
+:::
 
-The iOS plugin source ships native provider implementations for these providers:
+## Setup
 
-| Provider | iOS native file |
-|----------|-----------------|
-| Apple | `AppleAuthProvider.swift` |
-| Google | `GoogleAuthProvider.swift` |
-| Facebook | `FacebookAuthProvider.swift` |
-| Microsoft | `MicrosoftAuthProvider.swift` |
-| GitHub | `GitHubAuthProvider.swift` |
-| Slack | `SlackAuthProvider.swift` |
-| LinkedIn | `LinkedInAuthProvider.swift` |
+1. Create an **iOS** OAuth client in Google Cloud.
+2. Add `GIDClientID` (your iOS client id) to `Info.plist`, or pass it as `iosClientId`.
+3. Add the **reversed client id** as a URL scheme in `Info.plist` → `CFBundleURLTypes` (e.g. `com.googleusercontent.apps.XXXX`).
+4. For a `serverAuthCode`, also set `serverClientId` (your Web client id).
 
-A generic `OAuthWebProvider.swift` provides a web-based OAuth fallback for other flows. These sit on shared scaffolding — `BaseAuthProvider.swift`, `Models.swift`, `AuthStorage.swift`, `AuthLogger.swift`, and the entry points `CapacitorAuthManager.swift` and `Plugin.swift`. The full per-provider native status lives in the package's `CAPABILITY_MATRIX.md`.
+```typescript
+import { auth, AuthProvider } from 'capacitor-auth-manager';
 
-## Web vs native on iOS
+auth.configure({
+  providers: {
+    [AuthProvider.GOOGLE]: {
+      iosClientId: 'YOUR_IOS_OAUTH_CLIENT_ID',   // or set GIDClientID in Info.plist
+      serverClientId: 'YOUR_WEB_OAUTH_CLIENT_ID', // for a serverAuthCode
+    },
+  },
+});
 
-Because the web surface is complete, an iOS Capacitor app can use the same `auth` API as the web build; providers run their browser flow inside the webview unless a native implementation exists for them. Reach for a native provider when you want the platform's native sign-in sheet (for example Apple's `ASAuthorization` flow) — and verify it against the Swift source first.
+const result = await auth.signIn(AuthProvider.GOOGLE);
+// iOS returns idToken + accessToken (+ serverAuthCode when serverClientId is set).
+const idToken = result.credential.idToken;
+```
 
-## Face ID and Touch ID
+Hand `idToken` to Firebase with `signInWithCredential(getAuth(), GoogleAuthProvider.credential(idToken))` — identical to web and Android. A `serverAuthCode` must be exchanged on **your** server, never in the app.
 
-Biometric authentication on iOS requires Face ID or Touch ID capability on the device. The biometric provider is device-local; the user must first sign in with another provider so there is a stored credential to unlock. On the web, the biometric fallback encrypts material with AES-GCM; on device it runs through the native plugin.
+## Native source
 
-## URL scheme configuration
-
-Some providers need URL scheme configuration to complete a redirect-based sign-in. Register the custom URL scheme (or associated domain) your provider redirect targets so the authorization-code flow can return to your app, and keep each provider's configured `redirectUri` consistent with what you register in the iOS project.
+The Google native path lives in `GoogleAuthProvider.swift` on shared scaffolding — `BaseAuthProvider.swift`, `Models.swift`, `AuthStorage.swift`, `AuthLogger.swift`, and the entry points `CapacitorAuthManager.swift` and `Plugin.swift`. The iOS (Swift) and Android (Java) sources are written to the official SDK contracts but are not compiled in CI — validate a new version on a real device before rolling it out widely.
 
 ## Secure storage
 
 The default web storage backend is `localStorage`, which inside a webview is still exposed to script on the page. On native, inject `CapacitorPreferencesStorage` so tokens live in iOS `UserDefaults` instead of the webview's `localStorage`. Preferences is not hardware-encrypted — for secrecy at rest, supply a Keychain-backed `StorageInterface`. See [Storage](/api/storage).
 
 ```typescript
-import { auth, CapacitorPreferencesStorage } from 'capacitor-auth-manager';
+import { auth, AuthProvider, CapacitorPreferencesStorage } from 'capacitor-auth-manager';
 
 auth.configure({
   storage: new CapacitorPreferencesStorage(),
-  providers: { apple: { clientId: 'YOUR_SERVICE_ID', redirectUri: 'YOUR_REDIRECT_URI' } },
+  providers: { [AuthProvider.GOOGLE]: { iosClientId: 'YOUR_IOS_OAUTH_CLIENT_ID' } },
 });
 ```
 

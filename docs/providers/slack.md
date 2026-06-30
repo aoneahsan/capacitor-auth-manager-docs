@@ -7,6 +7,10 @@ description: Configure and use the Slack provider in capacitor-auth-manager. It 
 
 # Slack authentication
 
+:::caution Not yet available (2.4.x)
+The Slack provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
 The Slack provider signs users in with a manual OAuth authorization-code flow protected by S256 PKCE. After the code exchange it fetches the real profile from Slack's OpenID Connect `openid.connect.userInfo` endpoint.
 
 ## When you need a backend

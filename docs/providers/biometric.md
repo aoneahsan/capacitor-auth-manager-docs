@@ -7,6 +7,10 @@ description: "Configure the device-local biometric provider in capacitor-auth-ma
 
 # Biometric authentication
 
+:::caution Not yet available (2.4.x)
+The biometric provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
 The biometric provider re-authenticates a user with the device's Face ID, Touch ID, or fingerprint sensor and returns the credentials you previously stored on that device. It is device-local: there is no backend, but the user must first sign in with another provider so there is a credential to unlock.
 
 ## Backend requirement

@@ -13,28 +13,28 @@ type Feature = {
 
 const FEATURES: Feature[] = [
   {
-    title: 'One API, 15 providers',
-    body: 'Google, Apple, Microsoft, Facebook, GitHub, Slack, LinkedIn, Firebase, plus email/username/phone-password, email-code and SMS OTP, magic link, and biometric — all behind a single auth.signIn() call.',
+    title: 'The same Google call everywhere',
+    body: 'auth.signIn(AuthProvider.GOOGLE) routes to GoogleSignIn on iOS, Credential Manager on Android, and Google Identity Services on the web — one call, the same result.idToken on every platform.',
+  },
+  {
+    title: 'Firebase-agnostic',
+    body: 'No firebase dependency is pulled in. You get a Google id token and feed it to Firebase yourself: signInWithCredential(getAuth(), GoogleAuthProvider.credential(result.credential.idToken)). Identical on web and native.',
+  },
+  {
+    title: 'A capacitor-google-auth alternative',
+    body: 'A drop-in alternative to @codetrix-studio/capacitor-google-auth that you own — using the modern Android Credential Manager and GoogleSignIn SDKs, with the id token moving from result.authentication.idToken to result.credential.idToken.',
   },
   {
     title: 'Framework-agnostic',
     body: 'A core singleton (works like Zustand — no context providers) with first-class adapters for React hooks, Vue composables, an Angular service/module/guard, and plain vanilla JS.',
   },
   {
-    title: 'Optional Capacitor',
-    body: 'Use it in any web app without Capacitor. Add the optional native iOS/Android plugin only when you ship a mobile build. The web path is the primary, fully-implemented surface.',
+    title: 'Google-first, growing',
+    body: 'Google is enabled and verified on web + iOS + Android in 2.4.x. The other 14 providers are being re-enabled one at a time; until then they throw AuthErrorCode.PROVIDER_NOT_ENABLED.',
   },
   {
-    title: 'Tree-shakeable, dynamic loading',
-    body: 'sideEffects:false and per-provider dynamic imports mean a bundle only includes the providers you actually call. Separate entry points keep React out of a Vue build, and vice versa.',
-  },
-  {
-    title: 'Security built in',
-    body: 'S256 PKCE on manual OAuth code flows, OIDC nonce and ID-token exp validation, pluggable secure storage (inject CapacitorPreferencesStorage on native), and AES-GCM web fallback for biometric material.',
-  },
-  {
-    title: 'TypeScript-first',
-    body: 'Every provider option, credential shape, result, and error code is typed. Switch on AuthErrorCode reliably; import AuthUser, AuthResult, StorageInterface, and more for full IntelliSense.',
+    title: 'TypeScript-first & secure by default',
+    body: 'Every option, credential, result, and error code is typed. No secrets are persisted by default; the web flow returns an id token only (no client secret, no backend required).',
   },
 ];
 
@@ -103,8 +103,8 @@ export default function Home(): ReactNode {
   const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title={`${siteConfig.title} — Universal auth for web & Capacitor`}
-      description="Documentation for capacitor-auth-manager: 15 authentication providers behind one framework-agnostic API for React, Vue, Angular, vanilla JS, and optional Capacitor apps."
+      title={`${siteConfig.title} — Firebase-agnostic Google sign-in for web & Capacitor`}
+      description="Documentation for capacitor-auth-manager: Firebase-agnostic Google authentication for the web and Capacitor (iOS/Android) — a drop-in alternative to @codetrix-studio/capacitor-google-auth, with one auth.signIn(AuthProvider.GOOGLE) call on every platform. Works with React, Vue, Angular, and vanilla JS."
     >
       <HomepageHeader />
       <main>

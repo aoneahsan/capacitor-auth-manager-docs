@@ -7,6 +7,10 @@ description: Configure and use the Apple provider in capacitor-auth-manager. Sig
 
 # Apple authentication
 
+:::caution Not yet available (2.4.x)
+The Apple provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
 The Apple provider signs users in with Sign in with Apple JS (`window.AppleID`). It validates the returned ID token's nonce and expiry before building the user object.
 
 ## When you need a backend

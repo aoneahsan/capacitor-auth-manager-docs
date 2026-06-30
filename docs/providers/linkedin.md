@@ -7,6 +7,10 @@ description: Configure and use the LinkedIn provider in capacitor-auth-manager. 
 
 # LinkedIn authentication
 
+:::caution Not yet available (2.4.x)
+The LinkedIn provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
 The LinkedIn provider signs users in with a manual OAuth authorization-code flow protected by S256 PKCE. After the code exchange it fetches the real profile from LinkedIn's OpenID Connect `/v2/userinfo` endpoint.
 
 ## When you need a backend

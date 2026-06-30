@@ -11,9 +11,19 @@ Install the package from npm. It has one runtime dependency (`tslib`); everythin
 
 ```bash
 npm install capacitor-auth-manager
-# or
-yarn add capacitor-auth-manager
+# then, for the native (iOS/Android) plugin:
+npx cap sync
 ```
+
+```bash
+# or with yarn
+yarn add capacitor-auth-manager
+npx cap sync
+```
+
+:::info Google-first (2.4.x)
+Google is the only enabled provider right now. The package installs the same way regardless, but `auth.signIn()` only completes for `AuthProvider.GOOGLE`; other ids throw `AuthErrorCode.PROVIDER_NOT_ENABLED`. See the [Google provider](/providers/google) and [provider overview](/providers/overview).
+:::
 
 ## Optional peer dependencies
 
@@ -47,7 +57,7 @@ The library is distributed as ESM with CommonJS builds for backward compatibilit
 
 ## Native (Capacitor) projects
 
-Capacitor is optional. If you ship a mobile build, install `@capacitor/core` and sync the native projects with your usual Capacitor workflow. See [Android](/platforms/android) and [iOS](/platforms/ios) for the platform notes (URL schemes, biometric hardware, deployment target). The native plugin is a secondary surface — the web path is primary.
+Capacitor is optional. If you ship a mobile build, install `@capacitor/core`, run `npx cap sync`, and configure the native Google setup. See [Android](/platforms/android) (SHA-1/256 fingerprints, `serverClientId`, a Google account on the device) and [iOS](/platforms/ios) (`GIDClientID` + the reversed-client-id URL scheme) for the platform notes. The native Google path uses Android Credential Manager and the GoogleSignIn SDK.
 
 ## Related
 

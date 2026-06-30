@@ -16,7 +16,7 @@
     <path d="M88 132 H112 L106 176 H94 Z" fill="#ffffff"/>
   </g>
   <text x="360" y="270" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="68" font-weight="700">Capacitor Auth Manager</text>
-  <text x="360" y="340" fill="#c7d2fe" font-family="Inter, system-ui, sans-serif" font-size="34" font-weight="400">Universal authentication — 15 providers, framework-agnostic.</text>
-  <text x="360" y="404" fill="#a5b4fc" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="400">React · Vue · Angular · Vanilla JS · optional Capacitor</text>
+  <text x="360" y="340" fill="#c7d2fe" font-family="Inter, system-ui, sans-serif" font-size="34" font-weight="400">Firebase-agnostic Google sign-in — web, iOS &amp; Android.</text>
+  <text x="360" y="404" fill="#a5b4fc" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="400">One call everywhere · React · Vue · Angular · Vanilla JS</text>
   <text x="360" y="470" fill="#818cf8" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="500">npmjs.com/package/capacitor-auth-manager · by Ahsan Mahmood</text>
 </svg>
