@@ -27,7 +27,6 @@
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "typecheck": "tsc --noEmit",
-    "firebase:deploy": "yarn build && npx -y firebase-tools@latest deploy --only hosting --project capacitor-auth-manager-docs",
     "firebase:deploy:preview": "yarn build && npx -y firebase-tools@latest hosting:channel:deploy preview --project capacitor-auth-manager-docs --expires 7d"
   },
   "dependencies": {
