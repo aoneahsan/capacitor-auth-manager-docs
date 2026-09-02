@@ -21,24 +21,28 @@ yarn add capacitor-auth-manager
 npx cap sync
 ```
 
-:::info Google-first (2.4.x)
+:::info Google-first (2.5.x)
 Google is the only enabled provider right now. The package installs the same way regardless, but `auth.signIn()` only completes for `AuthProvider.GOOGLE`; other ids throw `AuthErrorCode.PROVIDER_NOT_ENABLED`. See the [Google provider](/providers/google) and [provider overview](/providers/overview).
 :::
 
-## Optional peer dependencies
+## Peer dependencies
 
-Add only the peers your app actually uses. None of them are required to run the core web library.
+`@capacitor/core` is a **required** peer since 2.5.0 — the published bundle registers the Capacitor plugin even
+in a web-only build. Everything else is optional; add only what your app uses.
 
-| Peer | When you need it | Supported range |
-| --- | --- | --- |
-| `@capacitor/core` | Only for the native iOS/Android plugin or `CapacitorPreferencesStorage` | `^7` or `^8` |
-| `@capacitor/preferences` | Only if you inject `CapacitorPreferencesStorage` for native token storage | `^6`, `^7`, or `^8` |
-| `react` | Only for the React adapter (`capacitor-auth-manager/react`) | `16.8`–`19` |
-| `vue` | Only for the Vue adapter (`capacitor-auth-manager/vue`) | `^3` |
-| `@angular/core` | Only for the Angular adapter (`capacitor-auth-manager/angular`) | up to `^21` |
-| `capacitor-biometric-authentication` | Optional — native biometric verification | declared as an optional dependency |
+| Peer | Required? | When you need it | Supported range |
+| --- | --- | --- | --- |
+| `@capacitor/core` | **yes** | always (the plugin bridge is registered at import) | `^7.4.2` or `^8` |
+| `@capacitor/preferences` | optional | only if you inject `CapacitorPreferencesStorage` for native token storage | `^6`, `^7`, or `^8` |
+| `react` | optional | the React adapter (`capacitor-auth-manager/react`) | `16.8`–`19` |
+| `vue` | optional | the Vue adapter (`capacitor-auth-manager/vue`) | `^3` |
+| `@angular/core` | optional | the Angular adapter (`capacitor-auth-manager/angular`) | `^12`–`^22` |
 
-Because the package marks all of these optional, npm/yarn will not force-install them. You will only see a peer warning for a framework you are not using if your tooling is strict — it is safe to ignore for unused adapters.
+Nothing is installed for disabled providers: the former `capacitor-biometric-authentication` optional
+dependency was removed in 2.5.0 and returns as an optional peer when the biometric provider is re-enabled.
+
+**Node:** `>=24.0.0` for installing and building. The package itself runs in a browser or a webview; since
+2.5.0 importing it under bare Node (ESM or CJS, SSR, test runners) is side-effect free and resolves cleanly.
 
 ## Entry points
 

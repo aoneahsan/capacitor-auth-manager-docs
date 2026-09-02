@@ -17,7 +17,7 @@ On the web, the singleton auto-initializes the first time it is constructed (whe
 
 `AuthState` is `{ user, isLoading, isAuthenticated, provider }` — it does not carry raw tokens. Read tokens with `getIdToken()`.
 
-:::info Google-first (2.4.x)
+:::info Google-first (2.5.x)
 The method surface below is the full API, but only **Google** is enabled right now. Calls that target a non-Google provider — `signIn`, `linkAccount`, etc. — throw `AuthErrorCode.PROVIDER_NOT_ENABLED`. The non-Google examples on this page illustrate the call shape for when those providers are re-enabled. Use the `AuthProvider` enum (e.g. `AuthProvider.GOOGLE`); the string `'google'` also works.
 :::
 
@@ -64,7 +64,7 @@ import { auth, AuthProvider } from 'capacitor-auth-manager';
 
 const result = await auth.signIn(AuthProvider.GOOGLE);
 
-// Object form (roadmap shape — non-Google providers throw PROVIDER_NOT_ENABLED in 2.4.x):
+// Object form (roadmap shape — non-Google providers throw PROVIDER_NOT_ENABLED in 2.5.x):
 await auth.signIn({
   provider: 'email-password',
   credentials: { email: 'user@example.com', password: 'secret' },
@@ -144,7 +144,7 @@ deleteAccount(options?: DeleteAccountOptions): Promise<void>
 ```
 
 ```typescript
-await auth.linkAccount({ provider: 'facebook' }); // roadmap shape — non-Google ids throw PROVIDER_NOT_ENABLED in 2.4.x
+await auth.linkAccount({ provider: 'facebook' }); // roadmap shape — non-Google ids throw PROVIDER_NOT_ENABLED in 2.5.x
 await auth.updateProfile({ displayName: 'New Name' });
 await auth.revokeAccess();
 await auth.deleteAccount(); // also clears local session + timers

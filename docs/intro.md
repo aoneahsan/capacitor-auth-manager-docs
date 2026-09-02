@@ -12,7 +12,7 @@ description: capacitor-auth-manager is a Firebase-agnostic Google authentication
 
 It is published on npm as [`capacitor-auth-manager`](https://www.npmjs.com/package/capacitor-auth-manager) and is MIT-licensed.
 
-:::info Status (2.4.x): Google-first
+:::info Status (2.5.x): Google-first
 Right now **Google is the enabled provider** (web + iOS + Android). The package is being brought to production **one provider at a time**. The other 14 providers' code lives in the repo but is **un-registered** — calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED` — and each is re-enabled and verified on device one at a time. Treat every non-Google provider page as a roadmap reference, not a working feature.
 :::
 
@@ -34,12 +34,12 @@ Honesty matters more than a long feature list when you are wiring auth.
 
 - It does **not** verify ID-token signatures in the browser. Re-validate any ID token on your server (or via Firebase) before trusting its claims.
 - It does **not** bundle Firebase. You call `signInWithCredential` yourself — the package only hands you the Google id token.
-- On the web it returns an **`idToken` only** (no `accessToken`). For Google API calls in the browser, use the GIS token client separately.
-- Only **Google** is enabled in 2.4.x. The other providers are not available yet and throw `AuthErrorCode.PROVIDER_NOT_ENABLED`.
+- On the web a single call returns **one** token: an `idToken` from One-Tap, or an `accessToken` from the OAuth2 popup fallback. Firebase accepts either; it never returns a refresh token in the browser.
+- Only **Google** is enabled in 2.5.x. The other providers are not available yet and throw `AuthErrorCode.PROVIDER_NOT_ENABLED`.
 
 ## Where to go next
 
-- [Installation](/getting-started/installation) — install the package and the optional peers.
+- [Installation](/getting-started/installation) — install the package, `@capacitor/core`, and the adapter peers you use.
 - [Quick Start](/getting-started/quick-start) — sign a user in with Google in five minutes, then hand the credential to Firebase.
 - [Google provider](/providers/google) — configuration, native setup, and the per-platform token table.
 - [Migrating from `@codetrix-studio/capacitor-google-auth`](/providers/google#migrating-from-codetrix-studiocapacitor-google-auth).

@@ -72,7 +72,7 @@ function isAuthError(error: unknown): error is AuthError;
 
 Two notes on accuracy:
 
-- In 2.4.x only **Google** is enabled. Calling `signIn` (or any operation) with a non-Google provider id throws `AuthErrorCode.PROVIDER_NOT_ENABLED` (`auth/provider-not-enabled`). The other providers are re-enabled one at a time — see the [provider overview](/providers/overview).
+- In 2.5.x only **Google** is enabled. Calling `signIn` (or any operation) with a non-Google provider id throws `AuthErrorCode.PROVIDER_NOT_ENABLED` (`auth/provider-not-enabled`). The other providers are re-enabled one at a time — see the [provider overview](/providers/overview).
 - Account-management methods (`linkAccount`, `unlinkAccount`, `revokeAccess`, `getIdToken`, `updateProfile`, `deleteAccount`) throw `AuthErrorCode.OPERATION_NOT_ALLOWED` when the active provider does not implement them, and `AuthErrorCode.NO_AUTH_SESSION` when there is no session.
 - `refreshToken()` throws the string code `auth/operation-not-supported` when a provider cannot refresh. That literal is not a member of the `AuthErrorCode` enum — match on the string if you handle it.
 

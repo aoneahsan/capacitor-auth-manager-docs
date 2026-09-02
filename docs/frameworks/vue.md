@@ -49,7 +49,7 @@ async function handleGoogleSignIn() {
 
 The state values (`user`, `isLoading`, `isAuthenticated`, `provider`, `error`) are reactive refs — in `<template>` they unwrap automatically; in `<script>` read them via `.value`.
 
-:::info Google-first (2.4.x)
+:::info Google-first (2.5.x)
 Google is the only enabled provider; `signIn` with another id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The adapter re-exports `AuthProvider` (recommended); the string `'google'` also works.
 :::
 

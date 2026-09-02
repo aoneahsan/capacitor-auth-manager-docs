@@ -9,7 +9,7 @@ description: Using capacitor-auth-manager on Android via Capacitor — native Go
 
 On Android, capacitor-auth-manager runs **native Google sign-in** through the modern **Credential Manager** API. The same `auth.signIn(AuthProvider.GOOGLE)` call you use on web and iOS runs here too. Native Android support requires Capacitor (`@capacitor/core` `^7` or `^8`), and `npx cap sync`.
 
-:::info Google-first (2.4.x)
+:::info Google-first (2.5.x)
 Google is the only enabled provider. The Android source also ships scaffolding for other providers, but they are not registered — `auth.signIn()` with a non-Google id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`.
 :::
 
@@ -17,10 +17,10 @@ Google is the only enabled provider. The Android source also ships scaffolding f
 
 1. In Google Cloud / Firebase, create an **Android** OAuth client and add your app's **SHA-1/SHA-256** signing fingerprints; create (or reuse) a **Web** OAuth client.
 2. Pass that **Web** client id as `serverClientId` — Credential Manager needs it to return an id token.
-3. Add your app's `google-services.json` to the Android project as usual.
-4. The device must have a Google account signed in (Credential Manager shows that account chooser).
+3. No `google-services.json` is needed by this plugin — it uses no Firebase native SDK.
+4. A Google account on the device gives the fastest path (the Credential Manager bottom sheet). With none — or when the sheet offers no authorized account — the default `androidFlow: 'auto'` falls back to the **Sign in with Google button flow**, which lets the user pick or add an account. Force one path with `androidFlow: 'bottom-sheet'` or `'button'`, in the provider options or per call.
 
-No extra `AndroidManifest` permissions are required by this plugin.
+The plugin declares only `INTERNET`. Nothing else is merged into your manifest.
 
 ```typescript
 import { auth, AuthProvider } from 'capacitor-auth-manager';

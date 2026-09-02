@@ -45,7 +45,7 @@ function LoginButton() {
 }
 ```
 
-:::info Google-first (2.4.x)
+:::info Google-first (2.5.x)
 Google is the only enabled provider; `signIn` with another id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The adapter re-exports `AuthProvider` (recommended); the string `'google'` also works.
 :::
 

@@ -114,11 +114,21 @@ The object form accepted by `auth.signIn`.
 
 A union of every provider's option interface — `GoogleAuthOptions`, `AppleAuthOptions`, `MicrosoftAuthOptions`, `FacebookAuthOptions`, `GitHubAuthOptions`, `SlackAuthOptions`, `LinkedInAuthOptions`, `FirebaseAuthOptions`, `EmailMagicLinkOptions`, `SmsAuthOptions`, `EmailPasswordOptions`, `PhonePasswordOptions`, `UsernamePasswordOptions`, `EmailCodeOptions`, and `BiometricAuthOptions`. Each provider page documents its own fields.
 
+## `GoogleWebFlow` and `GoogleAndroidFlow`
+
+```typescript
+type GoogleWebFlow = 'auto' | 'one-tap' | 'popup';
+type GoogleAndroidFlow = 'auto' | 'bottom-sheet' | 'button';
+```
+
+Flow selectors for the Google provider (`GoogleAuthOptions.webFlow` / `.androidFlow`, also accepted per call in
+`SignInProviderOptions`). See [Web platform](/platforms/web) and [Android platform](/platforms/android).
+
 ## `AuthProvider`
 
 String enum of provider ids: `GOOGLE`, `APPLE`, `MICROSOFT`, `FACEBOOK`, `GITHUB`, `SLACK`, `LINKEDIN`, `FIREBASE`, `EMAIL_MAGIC_LINK`, `MAGIC_LINK`, `SMS`, `EMAIL_PASSWORD`, `PHONE_PASSWORD`, `USERNAME_PASSWORD`, `EMAIL_CODE`, `BIOMETRIC`. You can pass the enum member or its string value (for example `AuthProvider.GOOGLE` or `'google'`).
 
-In 2.4.x only `AuthProvider.GOOGLE` is **enabled**. The other members exist in the enum, but signing in with them throws `AuthErrorCode.PROVIDER_NOT_ENABLED` until each provider is re-enabled. See the [provider overview](/providers/overview).
+In 2.5.x only `AuthProvider.GOOGLE` is **enabled**. The other members exist in the enum, but signing in with them throws `AuthErrorCode.PROVIDER_NOT_ENABLED` until each provider is re-enabled. See the [provider overview](/providers/overview).
 
 ## `AuthPersistence`
 

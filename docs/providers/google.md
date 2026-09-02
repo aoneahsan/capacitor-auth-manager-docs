@@ -7,7 +7,7 @@ description: Configure and use the Google provider in capacitor-auth-manager —
 
 # Google authentication
 
-Google is the **enabled provider** in capacitor-auth-manager (2.4.x). The same call —
+Google is the **enabled provider** in capacitor-auth-manager (2.5.x). The same call —
 `auth.signIn(AuthProvider.GOOGLE)` — dispatches natively to the right Google SDK on each platform and returns a Google credential whose `idToken` is populated everywhere:
 
 | Platform | Mechanism | Returns |
@@ -56,12 +56,15 @@ You can also set the Google options in `capacitor.config` under the plugin block
 | `filterByAuthorizedAccounts` | Android | Credential Manager returning-user UX. |
 | `autoSelectEnabled` | Android | One-tap auto-select for returning users. |
 | `nonce` | web | Bind the request to an id-token `nonce` claim (validated). |
+| `webFlow` | web | `'auto'` (default: One-Tap, then the OAuth2 popup if One-Tap is not shown) · `'one-tap'` · `'popup'`. Also accepted per call in `signIn({ options })`. |
+| `androidFlow` | Android | `'auto'` (default: Credential Manager bottom sheet, then the Sign in with Google button flow if no account is offered) · `'bottom-sheet'` · `'button'`. Also accepted per call. |
 
 ## Sign in
 
 ```typescript
 const result = await auth.signIn(AuthProvider.GOOGLE);
-const idToken = result.credential.idToken;   // present on web, iOS, and Android
+const idToken = result.credential.idToken;         // One-Tap (web), iOS, Android
+const accessToken = result.credential.accessToken; // web popup fallback, iOS
 ```
 
 ## Hand the credential to Firebase (identical on every platform)
@@ -72,9 +75,10 @@ The package is Firebase-agnostic — it pulls in no `firebase` dependency. You f
 import { getAuth, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 
 const result = await auth.signIn(AuthProvider.GOOGLE);
+const { idToken, accessToken } = result.credential;
 await signInWithCredential(
   getAuth(),
-  GoogleAuthProvider.credential(result.credential.idToken),
+  GoogleAuthProvider.credential(idToken ?? null, accessToken),
 );
 ```
 
@@ -97,9 +101,9 @@ await signInWithCredential(
 
 Per-platform token availability (honest):
 
-- **Web** (GIS id-token flow): returns **`idToken`** only — no `accessToken`. If you need to call Google APIs from the browser, use the GIS token client separately.
+- **Web** (GIS): One-Tap returns an **`idToken`**; the OAuth2 popup fallback returns an **`accessToken`** (and the Google profile). Firebase accepts either — `GoogleAuthProvider.credential(idToken ?? null, accessToken)`. See [Web platform](/platforms/web).
 - **iOS** (GoogleSignIn): `idToken` + `accessToken` (+ `serverAuthCode` when `serverClientId` is set).
-- **Android** (Credential Manager): returns **`idToken`** reliably. `accessToken` / `serverAuthCode` require the separate Google Authorization API and are not returned by the sign-in call (planned).
+- **Android** (Credential Manager): returns **`idToken`** reliably — from the bottom sheet or, when no account is offered, from the Sign in with Google button flow (`androidFlow: 'auto'`). `accessToken` / `serverAuthCode` require the separate Google Authorization API and are not returned by the sign-in call (planned).
 
 ## Native setup
 
@@ -107,10 +111,10 @@ Per-platform token availability (honest):
 
 1. In Google Cloud / Firebase, create an **Android** OAuth client and add your app's **SHA-1/SHA-256** signing fingerprints; create (or reuse) a **Web** OAuth client.
 2. Pass that **Web** client id as `serverClientId` (Credential Manager needs it to return an idToken).
-3. Add your app's `google-services.json` to the Android project as usual.
-4. The device must have a Google account signed in (Credential Manager shows that account chooser).
+3. No `google-services.json` is needed by this plugin — it uses no Firebase native SDK. Credential Manager needs only the registered fingerprint and the Web client id.
+4. A Google account on the device gives the fastest path (the bottom sheet); with none, the button flow lets the user add one.
 
-No extra `AndroidManifest` permissions are required by this plugin.
+The plugin declares only `INTERNET`; no SMS, contacts or biometric permissions are added to your manifest.
 
 ### iOS
 
@@ -144,7 +148,7 @@ The id token moves from `result.authentication.idToken` to `result.credential.id
 
 ## Notes & caveats
 
-- Web Google sign-in uses One-Tap / FedCM `prompt()`; if One-Tap is suppressed (cooldown), render Google's official button via the provider's `renderButton(element)` escape hatch, or use your own Firebase popup on web.
+- Web Google sign-in tries One-Tap / FedCM first and falls back to the OAuth2 popup by default (`webFlow: 'auto'`). A dismissed One-Tap rejects with `USER_CANCELLED`; a closed popup with `POPUP_CLOSED_BY_USER`. Google's branded button is available via the provider's `renderButton(element)`.
 - The iOS (Swift) and Android (Java) sources are written to the official SDK contracts but are not compiled in CI. Validate a new version in one app (web + one Android device + one iOS device) before rolling it out widely.
 
 ## Related

@@ -2,12 +2,26 @@
 id: changelog
 title: Changelog
 sidebar_label: Changelog
-description: Release history for capacitor-auth-manager — the 2.4.1 Google-first release, plus 2.4.0, 2.3.0, and 2.2.0, latest first.
+description: Release history for capacitor-auth-manager — 2.5.0 (Google hardened on every layer), the 2.4.x Google-first releases, 2.3.0 and 2.2.0, latest first.
 ---
 
 # Changelog
 
 Release notes for `capacitor-auth-manager`, latest first. This mirrors the package's [full CHANGELOG](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/CHANGELOG.md), which follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
+
+## 2.5.0 — 2026-09-03 — Google hardened on every layer
+
+- **Bare Node ESM and server-side imports work.** Every relative import in the published build carries its `.js` extension, the `auth` singleton is created lazily, and browser storage is guarded — `import`/`require` under Node, SSR and test runners no longer throw. A tarball smoke test guards this on every publish.
+- **Web: OAuth2 popup fallback.** New `webFlow` option (`'auto'` default · `'one-tap'` · `'popup'`). When One-Tap is not displayed, the popup returns an `accessToken` Firebase accepts. A dismissed One-Tap rejects with `USER_CANCELLED` instead of hanging.
+- **Android: Sign in with Google button fallback.** New `androidFlow` option (`'auto'` default · `'bottom-sheet'` · `'button'`). The manifest now declares only `INTERNET` (the Play-restricted SMS permissions are gone), `getCurrentUser` resolves exactly once, `androidx.credentials` 1.5.0.
+- **Native sign-out state is honest:** an empty native result is no longer treated as a signed-in user on cold start.
+- `@capacitor/core` is a **required** peer; the unused `capacitor-biometric-authentication` optional dependency was removed; Node `>=24`.
+- Per-call sign-in options (`nonce`, `loginHint`, the flow selectors) now reach the native side.
+
+## 2.4.2 – 2.4.4 — 2026-06-30 … 2026-07-25
+
+- 2.4.2: Android and iOS sources compile in a clean Capacitor 8 app (2.4.1 is deprecated — its native code never compiled).
+- 2.4.3 / 2.4.4: documentation and metadata only; the README documented the Node ESM and SSR defects that 2.5.0 fixes.
 
 ## 2.4.1 — Google-first
 
