@@ -9,7 +9,7 @@ description: The full auth.configure() shape for capacitor-auth-manager — prov
 
 `auth.configure()` (and `auth.initialize()`) accept one `AuthManagerConfig` object. Every field is optional; you typically set `providers` plus a couple of globals. Calling `configure` more than once merges into the existing config, so you can register providers incrementally.
 
-:::info Google-first (2.4.x)
+:::info Google-first (2.5.x)
 Only Google is enabled today, so the `providers` map below configures Google. Adding another provider id does not make it work yet — `auth.signIn()` with a non-Google id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. Use the [`AuthProvider` enum](/api/types#authprovider) (recommended); the string `'google'` also works.
 :::
 

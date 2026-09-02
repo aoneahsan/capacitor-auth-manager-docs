@@ -9,7 +9,7 @@ description: Common questions about capacitor-auth-manager — Capacitor require
 
 ## Which providers are available right now?
 
-Only **Google** (as of 2.4.x). It works on web, iOS, and Android. The package is being brought to production one provider at a time; the other 14 providers' code is in the repo but un-registered, so calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. See the [provider overview](/providers/overview).
+Only **Google** (as of 2.5.x). It works on web, iOS, and Android. The package is being brought to production one provider at a time; the other 14 providers' code is in the repo but un-registered, so calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. See the [provider overview](/providers/overview).
 
 ## How is this different from `@codetrix-studio/capacitor-google-auth`?
 
@@ -42,6 +42,18 @@ By default on web, in `localStorage`, which any XSS or third-party script on the
 ## Does Google sign-in work the same on web, iOS, and Android?
 
 Yes — that's the point. The same `auth.signIn(AuthProvider.GOOGLE)` call dispatches to Google Identity Services (web), GoogleSignIn (iOS), or Credential Manager (Android), and `result.credential.idToken` is populated on every platform. The Swift/Java native sources are written to the official SDK contracts but are not compiled in CI — validate a new version on a real device before rolling it out widely.
+
+## What happens when Google One-Tap does not show up?
+
+With the default `webFlow: 'auto'` the package falls back to Google's OAuth2 popup, which works from any click
+handler and returns an `accessToken` instead of an `idToken`. Firebase accepts both:
+`GoogleAuthProvider.credential(idToken ?? null, accessToken)`. Use `webFlow: 'popup'` to skip One-Tap entirely.
+
+## Can I import the package in Node, SSR or a test runner?
+
+Yes, since 2.5.0. Importing is side-effect free (the `auth` singleton is created on first use) and every
+published relative import carries its `.js` extension, so bare Node ESM and CJS both resolve. Signing in
+still needs a browser or a device.
 
 ## Which frameworks are supported?
 

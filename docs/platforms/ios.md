@@ -9,7 +9,7 @@ description: Using capacitor-auth-manager on iOS via Capacitor — native Google
 
 On iOS, capacitor-auth-manager runs **native Google sign-in** through the **GoogleSignIn** SDK. The same `auth.signIn(AuthProvider.GOOGLE)` call you use on web and Android runs here too. Native iOS support requires Capacitor (`@capacitor/core` `^7` or `^8`) and `npx cap sync`.
 
-:::info Google-first (2.4.x)
+:::info Google-first (2.5.x)
 Google is the only enabled provider. The iOS source also ships scaffolding for other providers, but they are not registered — `auth.signIn()` with a non-Google id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`.
 :::
 

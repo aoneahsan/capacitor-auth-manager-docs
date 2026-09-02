@@ -17,7 +17,7 @@ const result = await auth.signIn(AuthProvider.GOOGLE);
 const idToken = result.credential.idToken; // web returns an idToken (no accessToken)
 ```
 
-:::info Google-first (2.4.x)
+:::info Google-first (2.5.x)
 Google is the only enabled provider. Other provider ids throw `AuthErrorCode.PROVIDER_NOT_ENABLED`. See the [provider overview](/providers/overview).
 :::
 
@@ -25,12 +25,29 @@ Google is the only enabled provider. Other provider ids throw `AuthErrorCode.PRO
 
 | What | Detail |
 |---|---|
-| Mechanism | Google Identity Services (GIS) id-token flow |
-| Backend required? | No — GIS manages the flow; no client secret needed |
-| Returns | `idToken` only (no `accessToken`) |
-| Firebase handoff | `signInWithCredential(getAuth(), GoogleAuthProvider.credential(result.credential.idToken))` |
+| Mechanism | Google Identity Services (GIS): One-Tap / FedCM id-token flow, with an OAuth2 popup fallback |
+| Backend required? | No — no client secret needed for either flow |
+| Returns | One-Tap: `idToken`. Popup: `accessToken` (+ the Google profile). Never both from one call. |
+| Firebase handoff | `signInWithCredential(getAuth(), GoogleAuthProvider.credential(idToken ?? null, accessToken))` |
 
-If One-Tap is suppressed (cooldown), render Google's official button via the provider's `renderButton(element)` escape hatch, or fall back to your own Firebase popup on web. For Google API calls from the browser, use the GIS token client separately.
+### Which flow runs — `webFlow`
+
+| `webFlow` | Behaviour |
+|---|---|
+| `'auto'` (default) | Try One-Tap / FedCM. If the browser does not display it (cooldown, FedCM opt-out, third-party-cookie settings) fall back to the OAuth2 popup. |
+| `'one-tap'` | One-Tap only. A suppressed prompt rejects with `POPUP_BLOCKED`; a user dismissal rejects with `USER_CANCELLED`. |
+| `'popup'` | The OAuth2 token popup only — deterministic, works from any click handler. Closing it rejects with `POPUP_CLOSED_BY_USER`. |
+
+Set it once in the provider options or per call:
+
+```typescript
+auth.configure({ providers: { [AuthProvider.GOOGLE]: { clientId, webFlow: 'auto' } } });
+await auth.signIn({ provider: AuthProvider.GOOGLE, options: { webFlow: 'popup' } });
+```
+
+For Google's branded button, call the provider's `renderButton(element)`; it shares the One-Tap credential callback.
+
+Add your dev and production origins (for example `http://localhost:5931`) to the Web OAuth client's **Authorized JavaScript origins** in Google Cloud — both flows check it.
 
 ## Honest limitation: ID tokens are not verified client-side
 

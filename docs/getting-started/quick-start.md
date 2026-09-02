@@ -9,7 +9,7 @@ description: Configure Google and sign a user in with capacitor-auth-manager in 
 
 This walks from a fresh install to a signed-in Google user, then hands the credential to Firebase. The **same `signIn(AuthProvider.GOOGLE)` call works on web, iOS, and Android** — native dispatch picks the right Google SDK for you.
 
-:::info Google-first (2.4.x)
+:::info Google-first (2.5.x)
 Google is the only enabled provider right now. Any other provider id throws `AuthErrorCode.PROVIDER_NOT_ENABLED` until it is re-enabled. See the [provider overview](/providers/overview).
 :::
 

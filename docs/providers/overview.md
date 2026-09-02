@@ -7,7 +7,7 @@ description: Which capacitor-auth-manager providers are enabled today — Google
 
 # Provider overview
 
-`capacitor-auth-manager` is being brought to production **one provider at a time**. As of **2.4.x, Google is the only enabled provider** — it works on web, iOS, and Android. The code for the other 14 providers lives in the repo but is **un-registered**: calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. Each is re-enabled and verified on device one at a time.
+`capacitor-auth-manager` is being brought to production **one provider at a time**. As of **2.5.x, Google is the only enabled provider** — it works on web, iOS, and Android. The code for the other 14 providers lives in the repo but is **un-registered**: calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. Each is re-enabled and verified on device one at a time.
 
 :::caution Only Google is available right now
 Treat every non-Google provider page as a **roadmap reference**, not a working feature. Configuring a non-Google provider and calling `auth.signIn()` with its id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`.
