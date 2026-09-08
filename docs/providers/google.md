@@ -148,7 +148,7 @@ The id token moves from `result.authentication.idToken` to `result.credential.id
 
 ## Notes & caveats
 
-- Web Google sign-in tries One-Tap / FedCM first and falls back to the OAuth2 popup by default (`webFlow: 'auto'`). A dismissed One-Tap rejects with `USER_CANCELLED`; a closed popup with `POPUP_CLOSED_BY_USER`. Google's branded button is available via the provider's `renderButton(element)`.
+- Web Google sign-in tries One-Tap / FedCM first and falls back to the OAuth2 popup by default (`webFlow: 'auto'`). A dismissed One-Tap rejects with `USER_CANCELLED`; a closed popup with `POPUP_CLOSED_BY_USER`. Google's branded button is available via `renderButton(element)` on the web provider class — it is not a method on the `auth` singleton, so reach it with `import { GoogleAuthProviderWeb } from 'capacitor-auth-manager/providers/web'` and construct the provider yourself.
 - The iOS (Swift) and Android (Java) sources are written to the official SDK contracts but are not compiled in CI. Validate a new version in one app (web + one Android device + one iOS device) before rolling it out widely.
 
 ## Related

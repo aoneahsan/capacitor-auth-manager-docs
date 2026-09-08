@@ -9,7 +9,7 @@ description: Release history for capacitor-auth-manager — 2.5.0 (Google harden
 
 Release notes for `capacitor-auth-manager`, latest first. This mirrors the package's [full CHANGELOG](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/CHANGELOG.md), which follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
-## 2.5.0 — 2026-09-03 — Google hardened on every layer
+## 2.5.0 — 2026-09-08 — Google hardened on every layer
 
 - **Bare Node ESM and server-side imports work.** Every relative import in the published build carries its `.js` extension, the `auth` singleton is created lazily, and browser storage is guarded — `import`/`require` under Node, SSR and test runners no longer throw. A tarball smoke test guards this on every publish.
 - **Web: OAuth2 popup fallback.** New `webFlow` option (`'auto'` default · `'one-tap'` · `'popup'`). When One-Tap is not displayed, the popup returns an `accessToken` Firebase accepts. A dismissed One-Tap rejects with `USER_CANCELLED` instead of hanging.
@@ -17,6 +17,10 @@ Release notes for `capacitor-auth-manager`, latest first. This mirrors the packa
 - **Native sign-out state is honest:** an empty native result is no longer treated as a signed-in user on cold start.
 - `@capacitor/core` is a **required** peer; the unused `capacitor-biometric-authentication` optional dependency was removed; Node `>=24`.
 - Per-call sign-in options (`nonce`, `loginHint`, the flow selectors) now reach the native side.
+- **`auth.getIdToken()` works on iOS and Android.** It previously threw `OPERATION_NOT_ALLOWED` on native — the bridge never exposed the method, even though both native layers implement it — while the same call worked on web.
+- **Native errors carry a real `AuthErrorCode`.** Android and iOS used to reject with only a message, so the code was guessed by substring-matching it and anything without "cancelled"/"network"/"timeout" surfaced as `auth/internal-error`. A cancelled sheet is now `auth/user-cancelled`, an interrupted request `auth/network-error`, a missing `serverClientId` `auth/missing-configuration`.
+- **Android no longer falls back to plaintext storage.** When the keystore cannot produce a master key, the session is kept in memory for the life of the process instead of writing ID tokens to disk unencrypted.
+- The Android plugin and the example app are compiled and run on an emulator before release (Gradle 8.14.3 / AGP 8.13 / JDK 21 / compileSdk 36). The iOS error-code change is not compile-verified and ships as such.
 
 ## 2.4.2 – 2.4.4 — 2026-06-30 … 2026-07-25
 

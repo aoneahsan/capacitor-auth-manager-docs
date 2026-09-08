@@ -45,7 +45,7 @@ auth.configure({ providers: { [AuthProvider.GOOGLE]: { clientId, webFlow: 'auto'
 await auth.signIn({ provider: AuthProvider.GOOGLE, options: { webFlow: 'popup' } });
 ```
 
-For Google's branded button, call the provider's `renderButton(element)`; it shares the One-Tap credential callback.
+For Google's branded button, call `renderButton(element)` on the web provider class — import it with `import { GoogleAuthProviderWeb } from 'capacitor-auth-manager/providers/web'` and construct it yourself, since it is not exposed on the `auth` singleton. It shares the One-Tap credential callback.
 
 Add your dev and production origins (for example `http://localhost:5931`) to the Web OAuth client's **Authorized JavaScript origins** in Google Cloud — both flows check it.
 

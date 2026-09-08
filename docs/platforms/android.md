@@ -59,6 +59,20 @@ auth.configure({
 });
 ```
 
+## Errors
+
+Native failures reach JavaScript with a real `AuthErrorCode` (since 2.5.0), so you can branch on
+`error.code` rather than on message text:
+
+| Situation | Code |
+|---|---|
+| the user dismissed the bottom sheet or the button flow | `auth/user-cancelled` |
+| no Google account on the device, and the button flow could not add one | `auth/sign-in-failed` |
+| the request was interrupted (Play services restarted, connectivity lost) | `auth/network-error` |
+| `serverClientId` (your **Web** OAuth client id) is missing | `auth/missing-configuration` |
+| the credential could not be parsed as a Google ID token | `auth/invalid-credentials` |
+| a silent refresh could not produce a token | `auth/token-refresh-failed` |
+
 ## Related
 
 - [Installation](/getting-started/installation)

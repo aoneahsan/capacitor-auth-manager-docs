@@ -30,7 +30,7 @@ const FEATURES: Feature[] = [
   },
   {
     title: 'Google-first, growing',
-    body: 'Google is enabled and verified on web + iOS + Android in 2.4.x. The other 14 providers are being re-enabled one at a time; until then they throw AuthErrorCode.PROVIDER_NOT_ENABLED.',
+    body: 'Google is enabled and verified on web + iOS + Android in 2.5.x. The other 14 providers are being re-enabled one at a time; until then they throw AuthErrorCode.PROVIDER_NOT_ENABLED.',
   },
   {
     title: 'TypeScript-first & secure by default',

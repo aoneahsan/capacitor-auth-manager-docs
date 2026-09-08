@@ -62,7 +62,7 @@ const config: Config = {
         name: 'Capacitor Auth Manager Documentation',
         url: SITE_URL,
         description:
-          'Documentation for capacitor-auth-manager, a Firebase-agnostic Google authentication library for Capacitor and the web — a drop-in alternative to @codetrix-studio/capacitor-google-auth. One auth.signIn(AuthProvider.GOOGLE) call returns a Google id token on web, iOS, and Android for React, Vue, Angular, and vanilla JS. Google is the enabled provider in 2.4.x; more providers are being added one at a time. Author: Ahsan Mahmood.',
+          'Documentation for capacitor-auth-manager, a Firebase-agnostic Google authentication library for Capacitor and the web — a drop-in alternative to @codetrix-studio/capacitor-google-auth. One auth.signIn(AuthProvider.GOOGLE) call returns a Google id token on web, iOS, and Android for React, Vue, Angular, and vanilla JS. Google is the enabled provider in 2.5.x; more providers are being added one at a time. Author: Ahsan Mahmood.',
         inLanguage: 'en',
         publisher: {
           '@type': 'Person',
@@ -96,7 +96,7 @@ const config: Config = {
           url: 'https://aoneahsan.com',
         },
         description:
-          'Firebase-agnostic Google authentication for Capacitor and the web — a drop-in alternative to @codetrix-studio/capacitor-google-auth. One API across web, iOS, Android, React, Vue, Angular, and vanilla JS. Google is enabled in 2.4.x; more providers are added one at a time. MIT-licensed.',
+          'Firebase-agnostic Google authentication for Capacitor and the web — a drop-in alternative to @codetrix-studio/capacitor-google-auth. One API across web, iOS, Android, React, Vue, Angular, and vanilla JS. Google is enabled in 2.5.x; more providers are added one at a time. MIT-licensed.',
         license: 'https://opensource.org/licenses/MIT',
       }),
     },
@@ -178,7 +178,7 @@ const config: Config = {
       {
         name: 'description',
         content:
-          'Documentation for capacitor-auth-manager — Firebase-agnostic Google sign-in for the web and Capacitor (iOS/Android), a drop-in alternative to @codetrix-studio/capacitor-google-auth. Google is enabled in 2.4.x; more providers coming one at a time. Works with React, Vue, Angular, and vanilla JS. Maintained by Ahsan Mahmood.',
+          'Documentation for capacitor-auth-manager — Firebase-agnostic Google sign-in for the web and Capacitor (iOS/Android), a drop-in alternative to @codetrix-studio/capacitor-google-auth. Google is enabled in 2.5.x; more providers coming one at a time. Works with React, Vue, Angular, and vanilla JS. Maintained by Ahsan Mahmood.',
       },
       {
         name: 'keywords',
