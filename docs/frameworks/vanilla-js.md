@@ -20,7 +20,7 @@ The singleton auto-initializes the first time it is used in a browser, so you ca
 ```typescript
 import { auth, AuthProvider } from 'capacitor-auth-manager';
 
-// 1. Configure Google (the enabled provider in 2.5.x; other ids throw PROVIDER_NOT_ENABLED)
+// 1. Configure Google (the enabled provider in 3.x; other ids throw PROVIDER_NOT_ENABLED)
 auth.configure({
   providers: {
     [AuthProvider.GOOGLE]: {

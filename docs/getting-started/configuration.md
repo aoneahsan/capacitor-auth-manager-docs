@@ -9,7 +9,7 @@ description: The full auth.configure() shape for capacitor-auth-manager — prov
 
 `auth.configure()` (and `auth.initialize()`) accept one `AuthManagerConfig` object. Every field is optional; you typically set `providers` plus a couple of globals. Calling `configure` more than once merges into the existing config, so you can register providers incrementally.
 
-:::info Google-first (2.5.x)
+:::info Google-first (3.x)
 Only Google is enabled today, so the `providers` map below configures Google. Adding another provider id does not make it work yet — `auth.signIn()` with a non-Google id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. Use the [`AuthProvider` enum](/api/types#authprovider) (recommended); the string `'google'` also works.
 :::
 
@@ -47,11 +47,11 @@ auth.configure({
 
 ## Persistence
 
-`'local'` uses `localStorage` (survives reload and tab close), `'session'` uses `sessionStorage` (cleared when the tab closes), and `'memory'` keeps state in memory only. Changing persistence at runtime recreates the storage backend; a no-op re-`configure` does not discard in-memory state.
+Tokens are not written through these storage adapters. `'local'` uses `localStorage` (survives reload and tab close), `'session'` uses `sessionStorage` (cleared when the tab closes), and `'memory'` keeps state in memory only. Changing persistence at runtime recreates the storage backend; a no-op re-`configure` does not discard in-memory state.
 
 ## Secure storage
 
-The default web storage is `localStorage`, which any XSS or third-party script on the origin can read. On native, inject a secure backend so tokens live in native key-value storage instead of the webview:
+The default web storage is `localStorage`, which any XSS or third-party script on the origin can read. On native, inject a secure backend to store profile/session metadata outside the webview:
 
 ```typescript
 import { auth, CapacitorPreferencesStorage } from 'capacitor-auth-manager';

@@ -7,7 +7,7 @@ description: Reference for StorageInterface, WebStorage, and CapacitorPreference
 
 # Storage backends
 
-capacitor-auth-manager persists the active session through a small, swappable storage abstraction. By choosing or injecting a backend you control where tokens live — which matters because the default web backend is `localStorage`, readable by any script on the origin.
+capacitor-auth-manager persists the active session through a small, swappable storage abstraction. Backends store profile/session metadata. Bearer credentials are not written through these adapters. The default web backend is `localStorage`, readable by any script on the origin.
 
 ```typescript
 import {
@@ -58,7 +58,7 @@ The config's `persistence: 'memory'` maps to `AuthPersistence.NONE`. Reads toler
 
 ## `CapacitorPreferencesStorage`
 
-A backend for native apps, backed by `@capacitor/preferences` (iOS `UserDefaults` / Android `SharedPreferences`). It keeps tokens out of the webview's `localStorage`, which is the right default for Capacitor apps. The `@capacitor/preferences` package is an **optional peer** — install it only when you use this backend; it is lazily imported on first use.
+A backend for native apps, backed by `@capacitor/preferences` (iOS `UserDefaults` / Android `SharedPreferences`). It stores metadata outside the webview's `localStorage`; it does not persist Google tokens. The `@capacitor/preferences` package is an **optional peer** — install it only when you use this backend; it is lazily imported on first use.
 
 ```typescript
 new CapacitorPreferencesStorage(prefix = 'cap_auth_');

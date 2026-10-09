@@ -9,7 +9,7 @@ description: Configure Google and sign a user in with capacitor-auth-manager in 
 
 This walks from a fresh install to a signed-in Google user, then hands the credential to Firebase. The **same `signIn(AuthProvider.GOOGLE)` call works on web, iOS, and Android** — native dispatch picks the right Google SDK for you.
 
-:::info Google-first (2.5.x)
+:::info Google-first (3.x)
 Google is the only enabled provider right now. Any other provider id throws `AuthErrorCode.PROVIDER_NOT_ENABLED` until it is re-enabled. See the [provider overview](/providers/overview).
 :::
 
@@ -36,11 +36,11 @@ auth.configure({
 
 ## 2. Sign in
 
-The same call runs on every platform and resolves to an `AuthResult`. The `idToken` field is populated on web, iOS, and Android.
+The same call runs on every platform and resolves to an `AuthResult`. Native and One-Tap flows return an ID token; the web popup flow returns an access token.
 
 ```typescript
 const result = await auth.signIn(AuthProvider.GOOGLE);
-const idToken = result.credential.idToken;     // present on web, iOS, and Android
+const idToken = result.credential.idToken;     // present on native and web One-Tap; absent on web popup
 console.log('Welcome', result.user.displayName);
 ```
 
@@ -54,7 +54,7 @@ import { getAuth, GoogleAuthProvider, signInWithCredential } from 'firebase/auth
 const result = await auth.signIn(AuthProvider.GOOGLE);
 await signInWithCredential(
   getAuth(),
-  GoogleAuthProvider.credential(result.credential.idToken),
+  GoogleAuthProvider.credential(result.credential.idToken ?? null, result.credential.accessToken ?? null),
 );
 ```
 

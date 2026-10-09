@@ -14,11 +14,11 @@ type Feature = {
 const FEATURES: Feature[] = [
   {
     title: 'The same Google call everywhere',
-    body: 'auth.signIn(AuthProvider.GOOGLE) routes to GoogleSignIn on iOS, Credential Manager on Android, and Google Identity Services on the web — one call, the same result.idToken on every platform.',
+    body: 'auth.signIn(AuthProvider.GOOGLE) routes to GoogleSignIn on iOS, Credential Manager on Android, and Google Identity Services on the web — one call, an ID token or access token for Firebase.',
   },
   {
     title: 'Firebase-agnostic',
-    body: 'No firebase dependency is pulled in. You get a Google id token and feed it to Firebase yourself: signInWithCredential(getAuth(), GoogleAuthProvider.credential(result.credential.idToken)). Identical on web and native.',
+    body: 'No firebase dependency is pulled in. You get a Google credential and feed it to Firebase yourself: signInWithCredential(getAuth(), GoogleAuthProvider.credential(result.credential.idToken ?? null, result.credential.accessToken ?? null)). Identical on web and native.',
   },
   {
     title: 'A capacitor-google-auth alternative',
@@ -30,11 +30,11 @@ const FEATURES: Feature[] = [
   },
   {
     title: 'Google-first, growing',
-    body: 'Google is enabled and verified on web + iOS + Android in 2.5.x. The other 14 providers are being re-enabled one at a time; until then they throw AuthErrorCode.PROVIDER_NOT_ENABLED.',
+    body: 'Google is enabled on web, iOS, and Android in 3.x. Validate real sign-in with your app’s OAuth configuration before rollout. The other 14 providers are being re-enabled one at a time; until then they throw AuthErrorCode.PROVIDER_NOT_ENABLED.',
   },
   {
     title: 'TypeScript-first & secure by default',
-    body: 'Every option, credential, result, and error code is typed. No secrets are persisted by default; the web flow returns an id token only (no client secret, no backend required).',
+    body: 'Every option, credential, result, and error code is typed. No secrets are persisted by default; web One-Tap returns an ID token and popup returns an access token, without a client secret.',
   },
 ];
 

@@ -17,6 +17,8 @@ import { useAuth } from 'capacitor-auth-manager/react';
 
 There is nothing to wrap your app in. The hooks read from the global `auth` singleton (the design works like Zustand), so you can call them in any component without an `<AuthProvider>` ancestor. Configure providers once at startup with `auth.configure(...)`.
 
+For Firebase-backed apps, use Firebase’s `onAuthStateChanged` for application session state and hand off Google credentials explicitly. See the [React/Firebase integration guide](/integration/ai). These hooks reflect the package’s Google session.
+
 ## Usage example
 
 ```tsx
@@ -45,7 +47,7 @@ function LoginButton() {
 }
 ```
 
-:::info Google-first (2.5.x)
+:::info Google-first (3.x)
 Google is the only enabled provider; `signIn` with another id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The adapter re-exports `AuthProvider` (recommended); the string `'google'` also works.
 :::
 

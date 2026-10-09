@@ -13,12 +13,12 @@ Finish the real task fast + correctly FIRST; docs/trackers/sync are a footnote (
 | Repo | `capacitor-auth-manager-docs` (PUBLIC — free GitHub Pages / Firebase Hosting) |
 | Type | Docusaurus 3 documentation site (classic preset + Mermaid) |
 | Package manager | yarn (Berry, node-modules linker) — NEVER npm/pnpm |
-| Node | >=18 |
+| Node | >=24 |
 | Author | Ahsan Mahmood ([aoneahsan@gmail.com](mailto:aoneahsan@gmail.com)) |
-| Live URL | https://capacitor-auth-manager-docs.aoneahsan.com (Firebase Hosting site `capacitor-auth-manager-docs` OR GitHub Pages; confirm DNS) |
-| Source package | https://www.npmjs.com/package/capacitor-auth-manager (`capacitor-auth-manager` v2.4.0) |
+| Live URL | https://capacitor-auth-manager-docs.aoneahsan.com (GitHub Pages; HTTPS custom domain verified) |
+| Source package | https://www.npmjs.com/package/capacitor-auth-manager (`capacitor-auth-manager` v3.0.0) |
 | Sibling project | `/home/ahsan/Documents/01-code/projects/00-npm-packages-projects/capacitor-auth-manager/` (the library) |
-| Content | 34 source-accurate `.md` pages: Getting Started, Framework Adapters, 15 Providers, API Reference, Platforms, FAQ, Changelog |
+| Content | 35 source-accurate `.md` pages: Getting Started, Framework Adapters, 15 Providers, API Reference, Platforms, FAQ, Changelog |
 | Build gates | `yarn typecheck` (tsc --noEmit) + `yarn build` (docusaurus → `./build`), both exit 0 |
 
 ## Critical rules
@@ -53,7 +53,7 @@ Gitignore Last Verified: 2026-06-24
 
 ## Last Updated
 
-2026-06-23
+2026-10-09
 
 
 ## Sub-agents & Skills — Main-Context-First (IRON-SOLID)

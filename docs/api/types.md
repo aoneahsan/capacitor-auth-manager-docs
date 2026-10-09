@@ -128,7 +128,7 @@ Flow selectors for the Google provider (`GoogleAuthOptions.webFlow` / `.androidF
 
 String enum of provider ids: `GOOGLE`, `APPLE`, `MICROSOFT`, `FACEBOOK`, `GITHUB`, `SLACK`, `LINKEDIN`, `FIREBASE`, `EMAIL_MAGIC_LINK`, `MAGIC_LINK`, `SMS`, `EMAIL_PASSWORD`, `PHONE_PASSWORD`, `USERNAME_PASSWORD`, `EMAIL_CODE`, `BIOMETRIC`. You can pass the enum member or its string value (for example `AuthProvider.GOOGLE` or `'google'`).
 
-In 2.5.x only `AuthProvider.GOOGLE` is **enabled**. The other members exist in the enum, but signing in with them throws `AuthErrorCode.PROVIDER_NOT_ENABLED` until each provider is re-enabled. See the [provider overview](/providers/overview).
+In 3.x only `AuthProvider.GOOGLE` is **enabled**. The other members exist in the enum, but signing in with them throws `AuthErrorCode.PROVIDER_NOT_ENABLED` until each provider is re-enabled. See the [provider overview](/providers/overview).
 
 ## `AuthPersistence`
 

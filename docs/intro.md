@@ -8,11 +8,11 @@ description: capacitor-auth-manager is a Firebase-agnostic Google authentication
 
 # Capacitor Auth Manager
 
-`capacitor-auth-manager` is a Firebase-agnostic **Google authentication** library for Capacitor and the web — a drop-in alternative to [`@codetrix-studio/capacitor-google-auth`](https://www.npmjs.com/package/@codetrix-studio/capacitor-google-auth). One call, `auth.signIn(AuthProvider.GOOGLE)`, returns a Google credential `{ idToken, accessToken?, serverAuthCode?, user }` on **web, iOS, and Android**; your app feeds the `idToken` into Firebase (or anything else). It works with React, Vue, Angular, and vanilla JS.
+`capacitor-auth-manager` is a Firebase-agnostic **Google authentication** library for Capacitor and the web — a drop-in alternative to [`@codetrix-studio/capacitor-google-auth`](https://www.npmjs.com/package/@codetrix-studio/capacitor-google-auth). One call, `auth.signIn(AuthProvider.GOOGLE)`, returns a Google result `{ user, credential: { idToken?, accessToken?, serverAuthCode? } }` on **web, iOS, and Android**; your app feeds the ID token or access token into Firebase (or verifies an ID token on its backend). It works with React, Vue, Angular, and vanilla JS.
 
 It is published on npm as [`capacitor-auth-manager`](https://www.npmjs.com/package/capacitor-auth-manager) and is MIT-licensed.
 
-:::info Status (2.5.x): Google-first
+:::info Status (3.x): Google-first
 Right now **Google is the enabled provider** (web + iOS + Android). The package is being brought to production **one provider at a time**. The other 14 providers' code lives in the repo but is **un-registered** — calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED` — and each is re-enabled and verified on device one at a time. Treat every non-Google provider page as a roadmap reference, not a working feature.
 :::
 
@@ -24,7 +24,7 @@ For native Google sign-in in a Capacitor app you normally reach for `@codetrix-s
 
 - A single `auth` singleton that works like a store (no providers/context, similar to Zustand).
 - The **same `signIn` call on web, iOS, and Android** — native dispatch picks GoogleSignIn (iOS), Credential Manager (Android), or Google Identity Services (web) for you.
-- A Google credential with `result.credential.idToken` populated on every platform — all you need for the Firebase handoff.
+- A Google credential with `idToken` on native/One-Tap or `accessToken` on web popup, both accepted by Firebase.
 - First-class adapters: React hooks, Vue 3 composables, an Angular service/module/route-guard, and a vanilla-JS surface — each re-exports the `AuthProvider` enum.
 - No `firebase` dependency, and no secrets persisted by default.
 
@@ -33,9 +33,9 @@ For native Google sign-in in a Capacitor app you normally reach for `@codetrix-s
 Honesty matters more than a long feature list when you are wiring auth.
 
 - It does **not** verify ID-token signatures in the browser. Re-validate any ID token on your server (or via Firebase) before trusting its claims.
-- It does **not** bundle Firebase. You call `signInWithCredential` yourself — the package only hands you the Google id token.
+- It does **not** bundle Firebase. You call `signInWithCredential` yourself — the package hands you the Google credential.
 - On the web a single call returns **one** token: an `idToken` from One-Tap, or an `accessToken` from the OAuth2 popup fallback. Firebase accepts either; it never returns a refresh token in the browser.
-- Only **Google** is enabled in 2.5.x. The other providers are not available yet and throw `AuthErrorCode.PROVIDER_NOT_ENABLED`.
+- Only **Google** is enabled in 3.x. The other providers are not available yet and throw `AuthErrorCode.PROVIDER_NOT_ENABLED`.
 
 ## Where to go next
 

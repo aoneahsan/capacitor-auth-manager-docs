@@ -2,25 +2,25 @@
 id: google
 title: Google authentication
 sidebar_label: Google
-description: Configure and use the Google provider in capacitor-auth-manager — the same signIn call on web, iOS, and Android, returning a Google id token you hand to Firebase. Native setup and the codetrix migration.
+description: Configure and use the Google provider in capacitor-auth-manager — the same signIn call on web, iOS, and Android, returning a Google ID or access token you hand to Firebase. Native setup and the codetrix migration.
 ---
 
 # Google authentication
 
-Google is the **enabled provider** in capacitor-auth-manager (2.5.x). The same call —
-`auth.signIn(AuthProvider.GOOGLE)` — dispatches natively to the right Google SDK on each platform and returns a Google credential whose `idToken` is populated everywhere:
+Google is the **enabled provider** in capacitor-auth-manager (3.x). The same call —
+`auth.signIn(AuthProvider.GOOGLE)` — dispatches natively to the right Google SDK on each platform and returns a Google credential containing an ID token or an access token, depending on the flow:
 
 | Platform | Mechanism | Returns |
 |---|---|---|
-| **Web** | Google Identity Services (id-token flow) | `idToken` only |
+| **Web** | Google Identity Services | One-Tap: `idToken`; popup: `accessToken` |
 | **iOS** | GoogleSignIn | `idToken` + `accessToken` (+ `serverAuthCode` when `serverClientId` is set) |
 | **Android** | Credential Manager | `idToken` reliably (`accessToken` / `serverAuthCode` come from the separate Google Authorization API, not the sign-in call) |
 
-For the Firebase `signInWithCredential` handoff, the **`idToken` is all you need** on every platform.
+For Firebase, use `GoogleAuthProvider.credential(idToken ?? null, accessToken ?? null)` so both web flows work.
 
 ## When you need a backend
 
-Sign-in completes with **no backend** required. The web flow uses the GIS **id-token** flow specifically so no client secret and no server are needed. You only involve a server if you opt into a `serverAuthCode` (iOS) and exchange it for refresh tokens — and that exchange must happen on **your** server, never in the browser.
+Sign-in completes with **no backend** required. Both web flows use Google Identity Services and need no client secret. You only involve a server if you opt into a `serverAuthCode` (iOS) and exchange it for refresh tokens — and that exchange must happen on **your** server, never in the browser.
 
 ## Configuration
 
@@ -35,9 +35,10 @@ auth.configure({
       clientId: 'YOUR_WEB_OAUTH_CLIENT_ID',        // web + Android serverClientId fallback
       serverClientId: 'YOUR_WEB_OAUTH_CLIENT_ID',  // REQUIRED on Android to receive an idToken
       iosClientId: 'YOUR_IOS_OAUTH_CLIENT_ID',     // iOS (or set GIDClientID in Info.plist)
+      webFlow: 'popup',                          // direct click; Firebase accepts access tokens
     },
   },
-  persistence: 'local',
+  persistence: 'memory',
 });
 ```
 
@@ -55,7 +56,7 @@ You can also set the Google options in `capacitor.config` under the plugin block
 | `loginHint` | all | Prefill an account. |
 | `filterByAuthorizedAccounts` | Android | Credential Manager returning-user UX. |
 | `autoSelectEnabled` | Android | One-tap auto-select for returning users. |
-| `nonce` | web | Bind the request to an id-token `nonce` claim (validated). |
+| `nonce` | web, iOS, Android | Bind the request to an id-token `nonce` claim (validated). |
 | `webFlow` | web | `'auto'` (default: One-Tap, then the OAuth2 popup if One-Tap is not shown) · `'one-tap'` · `'popup'`. Also accepted per call in `signIn({ options })`. |
 | `androidFlow` | Android | `'auto'` (default: Credential Manager bottom sheet, then the Sign in with Google button flow if no account is offered) · `'bottom-sheet'` · `'button'`. Also accepted per call. |
 
@@ -92,8 +93,8 @@ await signInWithCredential(
   credential: {
     providerId: 'google.com',
     signInMethod: 'google.com',
-    idToken?: string,        // present on web, iOS, Android
-    accessToken?: string,    // iOS; web returns none; Android not from the sign-in call
+    idToken?: string,        // web One-Tap, iOS, Android
+    accessToken?: string,    // web popup and iOS; not returned by Android sign-in
     serverAuthCode?: string, // iOS when serverClientId + offline access; exchange on YOUR server only
   },
 }
@@ -104,6 +105,8 @@ Per-platform token availability (honest):
 - **Web** (GIS): One-Tap returns an **`idToken`**; the OAuth2 popup fallback returns an **`accessToken`** (and the Google profile). Firebase accepts either — `GoogleAuthProvider.credential(idToken ?? null, accessToken)`. See [Web platform](/platforms/web).
 - **iOS** (GoogleSignIn): `idToken` + `accessToken` (+ `serverAuthCode` when `serverClientId` is set).
 - **Android** (Credential Manager): returns **`idToken`** reliably — from the bottom sheet or, when no account is offered, from the Sign in with Google button flow (`androidFlow: 'auto'`). `accessToken` / `serverAuthCode` require the separate Google Authorization API and are not returned by the sign-in call (planned).
+
+For the complete React/Firebase bootstrap, Firebase session ownership, and failure handling, use the [AI integration guide](/integration/ai).
 
 ## Native setup
 
@@ -135,21 +138,21 @@ await signInWithCredential(getAuth(), GoogleAuthProvider.credential(u.authentica
 import { auth, AuthProvider } from 'capacitor-auth-manager';
 auth.configure({ providers: { [AuthProvider.GOOGLE]: { clientId, serverClientId, iosClientId } } });
 const res = await auth.signIn(AuthProvider.GOOGLE);
-await signInWithCredential(getAuth(), GoogleAuthProvider.credential(res.credential.idToken));
+await signInWithCredential(getAuth(), GoogleAuthProvider.credential(res.credential.idToken ?? null, res.credential.accessToken ?? null));
 ```
 
-The id token moves from `result.authentication.idToken` to `result.credential.idToken`. Everything else (the native account chooser, the Firebase handoff) behaves the same.
+The id token moves from `result.authentication.idToken` to `result.credential.idToken`. Use both credential fields in Firebase handoff because the web popup returns an access token.
 
 ## Security & storage
 
-- **No secrets are persisted by default.** Short-lived id tokens are re-derived from the Google SDK's silent restore rather than written to `localStorage` / `@capacitor/preferences`. Inject a `StorageInterface` (ideally Keychain/Keystore-backed) if you need token persistence at rest.
-- The web flow uses the GIS **id-token** flow specifically so **no client secret and no backend** are required. A `serverAuthCode` (iOS) must be exchanged on **your** server, never in the browser.
+- **No secrets are persisted by default.** Short-lived id tokens are re-derived from the Google SDK's silent restore rather than written to `localStorage` / `@capacitor/preferences`. Storage adapters hold profile/session metadata, not bearer credentials. Android tokens are memory-only; the iOS Google SDK owns its Keychain session.
+- Both GIS web flows require no client secret. A `serverAuthCode` (iOS) must be exchanged on **your** server, never in the browser.
 - The package does not verify id-token signatures in the browser — validate the id token server-side (or via Firebase) before trusting its claims.
 
 ## Notes & caveats
 
 - Web Google sign-in tries One-Tap / FedCM first and falls back to the OAuth2 popup by default (`webFlow: 'auto'`). A dismissed One-Tap rejects with `USER_CANCELLED`; a closed popup with `POPUP_CLOSED_BY_USER`. Google's branded button is available via `renderButton(element)` on the web provider class — it is not a method on the `auth` singleton, so reach it with `import { GoogleAuthProviderWeb } from 'capacitor-auth-manager/providers/web'` and construct the provider yourself.
-- The iOS (Swift) and Android (Java) sources are written to the official SDK contracts but are not compiled in CI. Validate a new version in one app (web + one Android device + one iOS device) before rolling it out widely.
+- Native consumers compile in package CI. Validate a new version in one app (web + one Android device + one iOS device) before rolling it out widely.
 
 ## Related
 

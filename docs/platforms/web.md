@@ -2,12 +2,12 @@
 id: web
 title: Web platform
 sidebar_label: Web
-description: How capacitor-auth-manager runs Google sign-in on the web with Google Identity Services — no backend required, returning an id token you hand to Firebase.
+description: How capacitor-auth-manager runs Google sign-in on the web with Google Identity Services — no backend required, returning an ID or access token you hand to Firebase.
 ---
 
 # Web platform
 
-The web is one of capacitor-auth-manager's three first-class Google surfaces (web, iOS, Android). The package is a plain TypeScript library: it runs in any browser without Capacitor, and the singleton auto-initializes when `window` exists. On the web, `auth.signIn(AuthProvider.GOOGLE)` uses **Google Identity Services** (the id-token flow), so **no client secret and no backend** are required.
+The web is one of capacitor-auth-manager's three first-class Google surfaces (web, iOS, Android). The package is a plain TypeScript library: it runs in any browser without Capacitor, and the singleton auto-initializes when `window` exists. On the web, `auth.signIn(AuthProvider.GOOGLE)` uses **Google Identity Services** (One-Tap ID tokens or OAuth2 popup access tokens), so **no client secret and no backend** are required.
 
 ```typescript
 import { auth, AuthProvider } from 'capacitor-auth-manager';
@@ -17,7 +17,7 @@ const result = await auth.signIn(AuthProvider.GOOGLE);
 const idToken = result.credential.idToken; // web returns an idToken (no accessToken)
 ```
 
-:::info Google-first (2.5.x)
+:::info Google-first (3.x)
 Google is the only enabled provider. Other provider ids throw `AuthErrorCode.PROVIDER_NOT_ENABLED`. See the [provider overview](/providers/overview).
 :::
 
@@ -55,7 +55,7 @@ The library validates an OIDC `nonce` and the ID token's `exp` claim, but it doe
 
 ## Storage default
 
-On the web, the session is stored in `localStorage` by default (configurable to `sessionStorage` or in-memory via the `persistence` option). `localStorage` is readable by any script on the origin, so it is exposed to XSS. The biometric web fallback is an exception: it encrypts stored credential material with AES-GCM using a non-extractable IndexedDB key. See [Storage](/api/storage) for backends and the security trade-offs.
+On the web, the session is stored in `localStorage` by default (configurable to `sessionStorage` or in-memory via the `persistence` option). `localStorage` is readable by any script on the origin, so it is exposed to XSS. Stored profiles are UI metadata, not a verified authorization session. Tokens stay in memory; Firebase owns the application session. Biometric authentication is disabled. See [Storage](/api/storage) for backends and the security trade-offs.
 
 ## Supported environments
 

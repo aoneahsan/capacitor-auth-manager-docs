@@ -42,14 +42,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0 # full history so showLastUpdateTime is accurate
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 24
+          package-manager-cache: false # Corepack activates Yarn 4 in the next step.
 
       - name: Enable Corepack
         # Respects the `packageManager` pin in package.json. Do NOT add
@@ -57,6 +58,7 @@ jobs:
         # than the one that produced yarn.lock, which re-hashes patch entries
         # and makes `yarn install --immutable` fail with YN0028.
         run: |
+          npm install -g corepack
           corepack enable
           yarn --version
 
@@ -65,6 +67,9 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --immutable
+
+      - name: Typecheck
+        run: yarn typecheck
 
       - name: Build
         run: yarn build

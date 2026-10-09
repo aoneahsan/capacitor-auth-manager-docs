@@ -51,3 +51,7 @@ project-record-ignore/
 # Lock-file from unwanted package managers (yarn-only repo)
 package-lock.json
 pnpm-lock.yaml
+
+# Generated AI documentation (rebuilt from published source pages)
+static/raw/
+static/llms-full.txt

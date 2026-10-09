@@ -17,9 +17,13 @@ On the web, the singleton auto-initializes the first time it is constructed (whe
 
 `AuthState` is `{ user, isLoading, isAuthenticated, provider }` — it does not carry raw tokens. Read tokens with `getIdToken()`.
 
-:::info Google-first (2.5.x)
+:::info Google-first (3.x)
 The method surface below is the full API, but only **Google** is enabled right now. Calls that target a non-Google provider — `signIn`, `linkAccount`, etc. — throw `AuthErrorCode.PROVIDER_NOT_ENABLED`. The non-Google examples on this page illustrate the call shape for when those providers are re-enabled. Use the `AuthProvider` enum (e.g. `AuthProvider.GOOGLE`); the string `'google'` also works.
 :::
+
+## Prepare the Google SDK
+
+Call `await auth.prepare(AuthProvider.GOOGLE)` during browser bootstrap, after configuration and before enabling sign-in buttons. It initializes the provider without prompting. Keep sign-in in a direct user click handler.
 
 ## Configuration
 
@@ -64,7 +68,7 @@ import { auth, AuthProvider } from 'capacitor-auth-manager';
 
 const result = await auth.signIn(AuthProvider.GOOGLE);
 
-// Object form (roadmap shape — non-Google providers throw PROVIDER_NOT_ENABLED in 2.5.x):
+// Object form (roadmap shape — non-Google providers throw PROVIDER_NOT_ENABLED in 3.x):
 await auth.signIn({
   provider: 'email-password',
   credentials: { email: 'user@example.com', password: 'secret' },
@@ -144,7 +148,7 @@ deleteAccount(options?: DeleteAccountOptions): Promise<void>
 ```
 
 ```typescript
-await auth.linkAccount({ provider: 'facebook' }); // roadmap shape — non-Google ids throw PROVIDER_NOT_ENABLED in 2.5.x
+await auth.linkAccount({ provider: 'facebook' }); // roadmap shape — non-Google ids throw PROVIDER_NOT_ENABLED in 3.x
 await auth.updateProfile({ displayName: 'New Name' });
 await auth.revokeAccess();
 await auth.deleteAccount(); // also clears local session + timers
@@ -156,7 +160,7 @@ await auth.deleteAccount(); // also clears local session + timers
 isProviderConfigured(name: string): boolean        // was this provider passed to configure()?
 getConfiguredProviders(): string[]                 // names supplied to configure()/initialize()
 getAvailableProviders(): Promise<string[]>         // providers usable in the current environment
-getSupportedProviders(): Promise<string[]>         // providers the registry knows about
+getSupportedProviders(): Promise<string[]>         // enabled registered providers (Google only)
 isProviderSupported(provider: string): Promise<boolean>
 ```
 

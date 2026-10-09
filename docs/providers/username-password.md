@@ -7,7 +7,7 @@ description: "Configure the username and password provider in capacitor-auth-man
 
 # Username and password authentication
 
-:::caution Not yet available (2.5.x)
+:::caution Not yet available (3.x)
 The username-and-password provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
 :::
 

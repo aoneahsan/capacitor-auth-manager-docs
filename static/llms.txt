@@ -1,68 +1,51 @@
-# Capacitor Auth Manager — Documentation Index
+# Capacitor Auth Manager
 
-> capacitor-auth-manager (v2.4.1) is a Firebase-agnostic Google authentication library for Capacitor and the web — a drop-in alternative to @codetrix-studio/capacitor-google-auth. One auth.signIn(AuthProvider.GOOGLE) call returns a Google id token on web, iOS, and Android, which you hand to Firebase. Works with React, Vue, Angular, and vanilla JS. Author: Ahsan Mahmood (https://aoneahsan.com). npm: https://www.npmjs.com/package/capacitor-auth-manager. MIT-licensed.
+> Google sign-in for Capacitor and the web. Documentation for 3.0.0; Google is the only enabled provider. Firebase is managed by the consuming app.
 
-## About
+## Integration contract
 
-The library exposes an `auth` singleton (works like a store — no context provider needed). You call `auth.configure({ providers })` once, then `auth.signIn(AuthProvider.GOOGLE)` from any framework. The SAME call dispatches natively to GoogleSignIn on iOS, the Android Credential Manager on Android, and Google Identity Services on the web, and returns `result.credential.idToken` on every platform. You then hand it to Firebase: `signInWithCredential(getAuth(), GoogleAuthProvider.credential(result.credential.idToken))`. The package pulls in no `firebase` dependency, and persists no secrets by default; the web flow returns an id token only (no client secret, no backend required).
+Web One-Tap returns an ID token; web popup returns an access token; auto may return either. Native sign-in returns an ID token. Firebase handoff: GoogleAuthProvider.credential(idToken ?? null, accessToken ?? null). Call auth.prepare(AuthProvider.GOOGLE) before enabling a click handler. Firebase onAuthStateChanged owns protected routes. The package does not verify JWT signatures.
 
-Status (2.4.x): GOOGLE-FIRST. Google is the only ENABLED provider (web + iOS + Android). The other 14 providers (apple, microsoft, facebook, github, slack, linkedin, firebase, magic-link, sms, email-password, username-password, phone-password, email-code, biometric) are un-registered — calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED` — and are being re-enabled one at a time. Treat every non-Google provider page as a roadmap reference, not a working feature.
+## Machine-readable documentation
 
-Config: `auth.configure({ providers: { [AuthProvider.GOOGLE]: { clientId, serverClientId, iosClientId } } })`. `serverClientId` is the Web OAuth client id (REQUIRED on Android to return an id token). iOS needs GIDClientID in Info.plist + the reversed-client-id URL scheme; Android needs SHA-1/256 fingerprints in the console + a Google account on the device. The library validates an OIDC nonce + the id token's exp claim but does NOT verify the signature client-side — re-validate via your server or Firebase.
+- [AI integration guide](https://capacitor-auth-manager-docs.aoneahsan.com/raw/integration/ai.md): exact imports, setup, Firebase session lifecycle, errors, platform requirements, and acceptance checks.
+- [Raw Markdown manifest](https://capacitor-auth-manager-docs.aoneahsan.com/raw/manifest.json): release version and raw URL for every published page.
+- [Full documentation](https://capacitor-auth-manager-docs.aoneahsan.com/llms-full.txt): all published pages as plain text.
 
-This `llms.txt` follows the [llmstxt.org](https://llmstxt.org) spec.
+## Pages
 
-## Getting Started
-
-- [Introduction](https://capacitor-auth-manager-docs.aoneahsan.com/intro): what it is, what it does and does not do.
-- [Installation](https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/installation): npm install + optional peers + entry points.
-- [Quick Start](https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/quick-start): configure → signIn → onAuthStateChange in 5 minutes.
-- [Configuration](https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/configuration): the full AuthManagerConfig shape.
-
-## Framework Adapters
-
-- [Vanilla JS](https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/vanilla-js): the `auth` singleton API.
-- [React](https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/react): useAuth, useAuthState, useAuthProvider, useUser, useIsAuthenticated.
-- [Vue](https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/vue): useAuth, useAuthState, useUser, useAuthProvider, useAuthConfig.
-- [Angular](https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/angular): AuthService, AuthModule, AuthGuard, NoAuthGuard.
-
-## Providers
-
-- [Overview + status matrix](https://capacitor-auth-manager-docs.aoneahsan.com/providers/overview)
-- [Google](https://capacitor-auth-manager-docs.aoneahsan.com/providers/google) — ENABLED (web + iOS + Android)
-
-The pages below are roadmap references for providers that are NOT yet enabled (they throw `PROVIDER_NOT_ENABLED`):
-
-- [Apple](https://capacitor-auth-manager-docs.aoneahsan.com/providers/apple)
-- [Microsoft](https://capacitor-auth-manager-docs.aoneahsan.com/providers/microsoft)
-- [Facebook](https://capacitor-auth-manager-docs.aoneahsan.com/providers/facebook)
-- [GitHub](https://capacitor-auth-manager-docs.aoneahsan.com/providers/github)
-- [Slack](https://capacitor-auth-manager-docs.aoneahsan.com/providers/slack)
-- [LinkedIn](https://capacitor-auth-manager-docs.aoneahsan.com/providers/linkedin)
-- [Firebase](https://capacitor-auth-manager-docs.aoneahsan.com/providers/firebase)
-- [Email + Password](https://capacitor-auth-manager-docs.aoneahsan.com/providers/email-password)
-- [Username + Password](https://capacitor-auth-manager-docs.aoneahsan.com/providers/username-password)
-- [Phone + Password](https://capacitor-auth-manager-docs.aoneahsan.com/providers/phone-password)
-- [Email Code (OTP)](https://capacitor-auth-manager-docs.aoneahsan.com/providers/email-code)
-- [SMS (OTP)](https://capacitor-auth-manager-docs.aoneahsan.com/providers/sms)
-- [Magic Link](https://capacitor-auth-manager-docs.aoneahsan.com/providers/magic-link)
-- [Biometric](https://capacitor-auth-manager-docs.aoneahsan.com/providers/biometric)
-
-## API Reference
-
-- [The auth singleton](https://capacitor-auth-manager-docs.aoneahsan.com/api/auth-singleton): every auth.* method.
-- [Types](https://capacitor-auth-manager-docs.aoneahsan.com/api/types): AuthUser, AuthResult, AuthState, AuthManagerConfig, etc.
-- [Errors](https://capacitor-auth-manager-docs.aoneahsan.com/api/errors): AuthError, isAuthError, AuthErrorCode.
-- [Storage](https://capacitor-auth-manager-docs.aoneahsan.com/api/storage): StorageInterface, WebStorage, CapacitorPreferencesStorage.
-
-## Platforms
-
-- [Web](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/web)
-- [Android](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/android)
-- [iOS](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/ios)
-
-## More
-
-- [FAQ](https://capacitor-auth-manager-docs.aoneahsan.com/faq)
-- [Changelog](https://capacitor-auth-manager-docs.aoneahsan.com/changelog)
-- [About the author](https://capacitor-auth-manager-docs.aoneahsan.com/about-the-author)
+- [About the Author](https://capacitor-auth-manager-docs.aoneahsan.com/about-the-author): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/about-the-author.md
+- [The auth singleton](https://capacitor-auth-manager-docs.aoneahsan.com/api/auth-singleton): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/api/auth-singleton.md
+- [Errors and error codes](https://capacitor-auth-manager-docs.aoneahsan.com/api/errors): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/api/errors.md
+- [Storage backends](https://capacitor-auth-manager-docs.aoneahsan.com/api/storage): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/api/storage.md
+- [Types and interfaces](https://capacitor-auth-manager-docs.aoneahsan.com/api/types): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/api/types.md
+- [Changelog](https://capacitor-auth-manager-docs.aoneahsan.com/changelog): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/changelog.md
+- [FAQ](https://capacitor-auth-manager-docs.aoneahsan.com/faq): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/faq.md
+- [Angular service](https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/angular): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/frameworks/angular.md
+- [React hooks](https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/react): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/frameworks/react.md
+- [Vanilla JavaScript](https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/vanilla-js): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/frameworks/vanilla-js.md
+- [Vue 3 composables](https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/vue): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/frameworks/vue.md
+- [Configuration](https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/configuration): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/getting-started/configuration.md
+- [Installation](https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/installation): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/getting-started/installation.md
+- [Quick Start](https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/quick-start): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/getting-started/quick-start.md
+- [AI integration guide](https://capacitor-auth-manager-docs.aoneahsan.com/integration/ai): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/integration/ai.md
+- [Capacitor Auth Manager](https://capacitor-auth-manager-docs.aoneahsan.com/intro): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/intro.md
+- [Android platform](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/android): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/platforms/android.md
+- [iOS platform](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/ios): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/platforms/ios.md
+- [Web platform](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/web): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/platforms/web.md
+- [Apple authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/apple): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/apple.md
+- [Biometric authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/biometric): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/biometric.md
+- [Email code (OTP) authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/email-code): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/email-code.md
+- [Email and password authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/email-password): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/email-password.md
+- [Facebook authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/facebook): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/facebook.md
+- [Firebase authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/firebase): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/firebase.md
+- [GitHub authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/github): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/github.md
+- [Google authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/google): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/google.md
+- [LinkedIn authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/linkedin): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/linkedin.md
+- [Email magic link authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/magic-link): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/magic-link.md
+- [Microsoft authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/microsoft): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/microsoft.md
+- [Provider Overview](https://capacitor-auth-manager-docs.aoneahsan.com/providers/overview): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/overview.md
+- [Phone and password authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/phone-password): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/phone-password.md
+- [Slack authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/slack): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/slack.md
+- [SMS code (OTP) authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/sms): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/sms.md
+- [Username and password authentication](https://capacitor-auth-manager-docs.aoneahsan.com/providers/username-password): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/username-password.md

@@ -9,7 +9,7 @@ description: Common questions about capacitor-auth-manager — Capacitor require
 
 ## Which providers are available right now?
 
-Only **Google** (as of 2.5.x). It works on web, iOS, and Android. The package is being brought to production one provider at a time; the other 14 providers' code is in the repo but un-registered, so calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. See the [provider overview](/providers/overview).
+Only **Google** (as of 3.x). It works on web, iOS, and Android. The package is being brought to production one provider at a time; the other 14 providers' code is in the repo but un-registered, so calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. See the [provider overview](/providers/overview).
 
 ## How is this different from `@codetrix-studio/capacitor-google-auth`?
 
@@ -25,7 +25,7 @@ No. The library validates an OIDC `nonce` and the ID token's `exp` claim, but it
 
 ## Does Google sign-in need a backend?
 
-No. On the web it uses the Google Identity Services **id-token** flow (no client secret, no server). On iOS (GoogleSignIn) and Android (Credential Manager) the native SDK handles it. You only involve a server if you opt into a `serverAuthCode` (iOS) and exchange it for refresh tokens — and that exchange must happen on your server, never in the app/browser.
+No. Both Google Identity Services web flows require no client secret: One-Tap returns an ID token and popup returns an access token. On iOS (GoogleSignIn) and Android (Credential Manager) the native SDK handles it. You only involve a server if you opt into a `serverAuthCode` (iOS) and exchange it for refresh tokens — and that exchange must happen on your server, never in the app/browser.
 
 ## Do I need a context provider or wrapper component?
 
@@ -37,11 +37,11 @@ Yes. The package sets `sideEffects: false` and loads each provider dynamically, 
 
 ## How are tokens stored?
 
-By default on web, in `localStorage`, which any XSS or third-party script on the origin can read. On native, inject `CapacitorPreferencesStorage` (needs the optional `@capacitor/preferences` peer) so tokens live in native key-value storage. For secrecy at rest, supply a Keychain/Keystore-backed `StorageInterface`. See [storage](/api/storage).
+By default on web, in `localStorage`, which any XSS or third-party script on the origin can read. On native, inject `CapacitorPreferencesStorage` (needs the optional `@capacitor/preferences` peer) for native profile/session metadata. Token strings are not written through these storage adapters. Android credentials stay in memory; iOS relies on the Google SDK Keychain. For secrecy at rest, supply a Keychain/Keystore-backed `StorageInterface`. See [storage](/api/storage).
 
 ## Does Google sign-in work the same on web, iOS, and Android?
 
-Yes — that's the point. The same `auth.signIn(AuthProvider.GOOGLE)` call dispatches to Google Identity Services (web), GoogleSignIn (iOS), or Credential Manager (Android), and `result.credential.idToken` is populated on every platform. The Swift/Java native sources are written to the official SDK contracts but are not compiled in CI — validate a new version on a real device before rolling it out widely.
+Yes — that's the point. The same `auth.signIn(AuthProvider.GOOGLE)` call dispatches to Google Identity Services (web), GoogleSignIn (iOS), or Credential Manager (Android), and returns an ID token on native/One-Tap or an access token on web popup. Firebase handoff must use both credential fields. Native consumer builds run in package CI — validate a new version on a real device before rolling it out widely.
 
 ## What happens when Google One-Tap does not show up?
 
@@ -51,7 +51,7 @@ handler and returns an `accessToken` instead of an `idToken`. Firebase accepts b
 
 ## Can I import the package in Node, SSR or a test runner?
 
-Yes, since 2.5.0. Importing is side-effect free (the `auth` singleton is created on first use) and every
+Yes, since 3.0.0. Importing is side-effect free (the `auth` singleton is created on first use) and every
 published relative import carries its `.js` extension, so bare Node ESM and CJS both resolve. Signing in
 still needs a browser or a device.
 

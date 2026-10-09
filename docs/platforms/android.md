@@ -7,10 +7,10 @@ description: Using capacitor-auth-manager on Android via Capacitor — native Go
 
 # Android platform
 
-On Android, capacitor-auth-manager runs **native Google sign-in** through the modern **Credential Manager** API. The same `auth.signIn(AuthProvider.GOOGLE)` call you use on web and iOS runs here too. Native Android support requires Capacitor (`@capacitor/core` `^7` or `^8`), and `npx cap sync`.
+On Android, capacitor-auth-manager runs **native Google sign-in** through the modern **Credential Manager** API. The same `auth.signIn(AuthProvider.GOOGLE)` call you use on web and iOS runs here too. Native Android support requires Capacitor (`@capacitor/core` `^7.4.2` or `^8`), and `yarn cap sync`.
 
-:::info Google-first (2.5.x)
-Google is the only enabled provider. The Android source also ships scaffolding for other providers, but they are not registered — `auth.signIn()` with a non-Google id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`.
+:::info Google-first (3.x)
+Google is the only enabled provider. Other providers are excluded from the published native sources — `auth.signIn()` with a non-Google id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`.
 :::
 
 ## Setup
@@ -40,15 +40,15 @@ const result = await auth.signIn(AuthProvider.GOOGLE);
 const idToken = result.credential.idToken;
 ```
 
-Hand `idToken` to Firebase with `signInWithCredential(getAuth(), GoogleAuthProvider.credential(idToken))` — identical to web and iOS.
+Hand `idToken` to Firebase with `signInWithCredential(getAuth(), GoogleAuthProvider.credential(idToken))`. The web popup returns an access token instead; see the [Firebase integration guide](/integration/ai).
 
 ## Native source
 
-The Google native path lives in `GoogleAuthProvider.java` on top of shared scaffolding — `BaseAuthProvider.java`, `ProviderFactory.java`, `AuthStorage.java`, `AuthLogger.java`, and the plugin entry points `CapacitorAuthManager.java` and `CapacitorAuthManagerPlugin.java`. The iOS (Swift) and Android (Java) sources are written to the official SDK contracts but are not compiled in CI — validate a new version on a real device before rolling it out widely.
+The Google native path lives in `GoogleAuthProvider.java` on top of shared scaffolding — `BaseAuthProvider.java`, `ProviderFactory.java`, `AuthStorage.java`, `AuthLogger.java`, and the plugin entry points `CapacitorAuthManager.java` and `CapacitorAuthManagerPlugin.java`. Package CI compiles native consumers. Validate real Google sign-in with your OAuth clients on a device before rollout.
 
 ## Secure storage
 
-The default web storage backend is `localStorage`, which inside a webview is still exposed to script on the page. On native, inject `CapacitorPreferencesStorage` so tokens live in Android `SharedPreferences` instead of the webview's `localStorage`. Preferences is not hardware-encrypted — for secrecy at rest, supply a Keystore-backed `StorageInterface`. See [Storage](/api/storage).
+Storage adapters persist profile/session metadata, not bearer credentials. Android tokens stay in memory. Legacy package credential storage is removed on upgrade. `CapacitorPreferencesStorage` is optional metadata storage and is not encrypted. See [Storage](/api/storage).
 
 ```typescript
 import { auth, CapacitorPreferencesStorage } from 'capacitor-auth-manager';
@@ -61,7 +61,7 @@ auth.configure({
 
 ## Errors
 
-Native failures reach JavaScript with a real `AuthErrorCode` (since 2.5.0), so you can branch on
+Native failures reach JavaScript with a real `AuthErrorCode` (since 3.0.0), so you can branch on
 `error.code` rather than on message text:
 
 | Situation | Code |
