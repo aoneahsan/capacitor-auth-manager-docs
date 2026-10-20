@@ -1,5 +1,7 @@
 # Capacitor Auth Manager public docs
 
+**Last Updated:** 2026-10-20
+
 **Updated:** 2026-10-13. This public `aoneahsan/capacitor-auth-manager-docs` repository on `main`
 builds the Docusaurus site at <https://capacitor-auth-manager-docs.aoneahsan.com/>. Its sibling
 `../capacitor-auth-manager/` is the public package source; the parent `../` is a separate private
@@ -31,3 +33,9 @@ Keep the GitHub Pages CNAME, visible copy, metadata and generated AI content con
 project writing/Markdown and story rules for new public prose; factual maintenance must not
 invent methods, parameters, numbers or compatibility claims. The fleet run is recorded at
 `/home/ahsan/Documents/01-code/docs/tracking/fleet-maintenance-tracker.json`.
+
+## Stop-work Git gate
+
+<!-- RULE:stop-work-git-gate v2026-10-20 -->
+
+Before stopping, commit every legitimate change and work-progress checkpoint in this repository and each independent nested repository, fetch and merge the designated upstream, push the documented working branch, then verify an empty worktree and `0 0` ahead/behind. Never stash, discard, reset, rebase, or force-push. If synchronization is blocked, report the exact repository, branch, blocker, and next action instead of calling the work complete. The full workflow remains authoritative in `~/.claude/rules/git-workflow.md`.
