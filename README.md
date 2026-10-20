@@ -13,7 +13,7 @@ Built with [Docusaurus 3](https://docusaurus.io/). Deployed to GitHub Pages.
 This repo is **yarn-only** (Yarn Berry, node-modules linker). Do not use npm or pnpm.
 
 ```bash
-yarn install      # install dependencies
+yarn install --immutable
 yarn start        # local dev server (http://localhost:5962)
 yarn build        # production build → ./build
 yarn typecheck    # tsc --noEmit

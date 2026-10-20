@@ -1,6 +1,6 @@
 # Manual tasks
 
-Last Updated: 2026-10-09
+Last Updated: 2026-10-20
 
 DNS, GitHub Pages, the custom domain, and HTTPS are configured and live.
 

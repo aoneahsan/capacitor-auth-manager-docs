@@ -21,7 +21,7 @@ into this public repository.
 
 ## Local checks and publishing boundary
 
-Use the manifest's Yarn 4.17.1 with Node 24+. Run `yarn install --immutable`, `yarn typecheck`,
+Use the manifest's Yarn 4.18.1 with Node 24+. Run `yarn install --immutable`, `yarn typecheck`,
 then `yarn build`. The production build validates Docusaurus links and generates AI-readable
 output. Preview that exact build at desktop and mobile widths, including a direct docs route,
 navigation and browser console, before pushing `main`: `.github/workflows/deploy-pages.yml`
