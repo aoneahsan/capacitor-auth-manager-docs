@@ -17,7 +17,7 @@ Treat every non-Google provider page as a **roadmap reference**, not a working f
 
 | Provider | id | Status |
 |---|---|---|
-| **Google** | `google` / `AuthProvider.GOOGLE` | **Enabled** — web (GIS), iOS (GoogleSignIn), Android (Credential Manager) |
+| **Google** | `google` / `AuthProvider.GOOGLE` | **Enabled** — web (GIS), iOS (GoogleSignIn), Android (GoogleSignIn, Credential Manager fallback) |
 | Apple | `apple` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
 | Microsoft | `microsoft` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
 | Facebook | `facebook` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |

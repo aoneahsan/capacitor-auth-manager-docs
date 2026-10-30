@@ -32,7 +32,7 @@ auth.configure({
 });
 ```
 
-`serverClientId` is the **Web** OAuth client id; Android's Credential Manager needs it to return an id token. See the [Google provider page](/providers/google) for the full native setup (SHA-1/256 on Android, the reversed-client-id URL scheme on iOS).
+`serverClientId` is the **Web** OAuth client id; Android's Google sign-in needs it to return an id token. See the [Google provider page](/providers/google) for the full native setup (SHA-1/256 on Android, the reversed-client-id URL scheme on iOS).
 
 ## 2. Sign in
 

@@ -14,7 +14,7 @@ Google is the **enabled provider** in capacitor-auth-manager (3.x). The same cal
 |---|---|---|
 | **Web** | Google Identity Services | One-Tap: `idToken`; popup: `accessToken` |
 | **iOS** | GoogleSignIn | `idToken` + `accessToken` (+ `serverAuthCode` when `serverClientId` is set) |
-| **Android** | Credential Manager | `idToken` reliably (`accessToken` / `serverAuthCode` come from the separate Google Authorization API, not the sign-in call) |
+| **Android** | GoogleSignIn, Credential Manager fallback | `idToken` reliably (`accessToken` / `serverAuthCode` come from the separate Google Authorization API, not the sign-in call) |
 
 For Firebase, use `GoogleAuthProvider.credential(idToken ?? null, accessToken ?? null)` so both web flows work.
 
@@ -49,7 +49,7 @@ You can also set the Google options in `capacitor.config` under the plugin block
 | Option | Where | Purpose |
 |---|---|---|
 | `clientId` | web (required), Android fallback | Web OAuth client id; the id token's `aud`. |
-| `serverClientId` | Android (required for idToken), iOS | Web OAuth client id for Credential Manager / `serverAuthCode`. |
+| `serverClientId` | Android (required for idToken), iOS | Web OAuth client id; Google needs it to return an idToken. |
 | `iosClientId` | iOS | iOS OAuth client id (or set `GIDClientID` in `Info.plist`). |
 | `scopes` | all | Extra OAuth scopes (default `openid email profile`). |
 | `hostedDomain` | all | Restrict to a Google Workspace domain. |
@@ -58,7 +58,7 @@ You can also set the Google options in `capacitor.config` under the plugin block
 | `autoSelectEnabled` | Android | One-tap auto-select for returning users. |
 | `nonce` | web, iOS, Android | Bind the request to an id-token `nonce` claim (validated). |
 | `webFlow` | web | `'auto'` (default: One-Tap, then the OAuth2 popup if One-Tap is not shown) · `'one-tap'` · `'popup'`. Also accepted per call in `signIn({ options })`. |
-| `androidFlow` | Android | `'auto'` (default: Credential Manager bottom sheet, then the Sign in with Google button flow if no account is offered) · `'bottom-sheet'` · `'button'`. Also accepted per call. |
+| `androidFlow` | Android | `'auto'` (default since 3.1.0: GoogleSignIn, then Credential Manager if it fails for any reason other than a cancel) · `'legacy'` · `'credential-manager'` · `'bottom-sheet'` · `'button'`. Also accepted per call. |
 
 ## Sign in
 
@@ -104,7 +104,7 @@ Per-platform token availability (honest):
 
 - **Web** (GIS): One-Tap returns an **`idToken`**; the OAuth2 popup fallback returns an **`accessToken`** (and the Google profile). Firebase accepts either — `GoogleAuthProvider.credential(idToken ?? null, accessToken)`. See [Web platform](/platforms/web).
 - **iOS** (GoogleSignIn): `idToken` + `accessToken` (+ `serverAuthCode` when `serverClientId` is set).
-- **Android** (Credential Manager): returns **`idToken`** reliably — from the bottom sheet or, when no account is offered, from the Sign in with Google button flow (`androidFlow: 'auto'`). `accessToken` / `serverAuthCode` require the separate Google Authorization API and are not returned by the sign-in call (planned).
+- **Android** (GoogleSignIn, Credential Manager fallback): returns **`idToken`** — from GoogleSignIn's account chooser, or from Credential Manager when GoogleSignIn fails (`androidFlow: 'auto'`). `accessToken` / `serverAuthCode` require the separate Google Authorization API and are not returned by the sign-in call (planned).
 
 For the complete React/Firebase bootstrap, Firebase session ownership, and failure handling, use the [AI integration guide](/integration/ai).
 
@@ -112,10 +112,10 @@ For the complete React/Firebase bootstrap, Firebase session ownership, and failu
 
 ### Android
 
-1. In Google Cloud / Firebase, create an **Android** OAuth client and add your app's **SHA-1/SHA-256** signing fingerprints; create (or reuse) a **Web** OAuth client.
-2. Pass that **Web** client id as `serverClientId` (Credential Manager needs it to return an idToken).
-3. No `google-services.json` is needed by this plugin — it uses no Firebase native SDK. Credential Manager needs only the registered fingerprint and the Web client id.
-4. A Google account on the device gives the fastest path (the bottom sheet); with none, the button flow lets the user add one.
+1. In Google Cloud / Firebase, create an **Android** OAuth client and add **every** signing SHA-1/SHA-256 (debug, upload and Play App Signing); create (or reuse) a **Web** OAuth client.
+2. Pass that **Web** client id as `serverClientId`; Google returns no idToken without it.
+3. No `google-services.json` is needed by this plugin — it uses no Firebase native SDK. Google needs only the registered fingerprint and the Web client id.
+4. The default flow shows GoogleSignIn's account chooser (which can add an account) and falls back to Credential Manager. See [Android platform](/platforms/android).
 
 The plugin declares only `INTERNET`; no SMS, contacts or biometric permissions are added to your manifest.
 

@@ -23,7 +23,7 @@ For native Google sign-in in a Capacitor app you normally reach for `@codetrix-s
 ## What it gives you
 
 - A single `auth` singleton that works like a store (no providers/context, similar to Zustand).
-- The **same `signIn` call on web, iOS, and Android** — native dispatch picks GoogleSignIn (iOS), Credential Manager (Android), or Google Identity Services (web) for you.
+- The **same `signIn` call on web, iOS, and Android** — native dispatch picks GoogleSignIn (iOS), GoogleSignIn with a Credential Manager fallback (Android), or Google Identity Services (web) for you.
 - A Google credential with `idToken` on native/One-Tap or `accessToken` on web popup, both accepted by Firebase.
 - First-class adapters: React hooks, Vue 3 composables, an Angular service/module/route-guard, and a vanilla-JS surface — each re-exports the `AuthProvider` enum.
 - No `firebase` dependency, and no secrets persisted by default.

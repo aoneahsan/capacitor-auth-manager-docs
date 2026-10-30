@@ -118,7 +118,7 @@ A union of every provider's option interface — `GoogleAuthOptions`, `AppleAuth
 
 ```typescript
 type GoogleWebFlow = 'auto' | 'one-tap' | 'popup';
-type GoogleAndroidFlow = 'auto' | 'bottom-sheet' | 'button';
+type GoogleAndroidFlow = 'auto' | 'legacy' | 'credential-manager' | 'bottom-sheet' | 'button';
 ```
 
 Flow selectors for the Google provider (`GoogleAuthOptions.webFlow` / `.androidFlow`, also accepted per call in

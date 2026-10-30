@@ -41,7 +41,7 @@ By default on web, in `localStorage`, which any XSS or third-party script on the
 
 ## Does Google sign-in work the same on web, iOS, and Android?
 
-Yes — that's the point. The same `auth.signIn(AuthProvider.GOOGLE)` call dispatches to Google Identity Services (web), GoogleSignIn (iOS), or Credential Manager (Android), and returns an ID token on native/One-Tap or an access token on web popup. Firebase handoff must use both credential fields. Native consumer builds run in package CI — validate a new version on a real device before rolling it out widely.
+Yes — that's the point. The same `auth.signIn(AuthProvider.GOOGLE)` call dispatches to Google Identity Services (web), GoogleSignIn (iOS), or GoogleSignIn with a Credential Manager fallback (Android), and returns an ID token on native/One-Tap or an access token on web popup. Firebase handoff must use both credential fields. Native consumer builds run in package CI — validate a new version on a real device before rolling it out widely.
 
 ## What happens when Google One-Tap does not show up?
 

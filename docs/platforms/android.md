@@ -2,12 +2,12 @@
 id: android
 title: Android platform
 sidebar_label: Android
-description: Using capacitor-auth-manager on Android via Capacitor — native Google sign-in through the Android Credential Manager, returning an id token you hand to Firebase.
+description: Using capacitor-auth-manager on Android via Capacitor — native Google sign-in through GoogleSignIn with an Android Credential Manager fallback, returning an id token you hand to Firebase or Supabase.
 ---
 
 # Android platform
 
-On Android, capacitor-auth-manager runs **native Google sign-in** through the modern **Credential Manager** API. The same `auth.signIn(AuthProvider.GOOGLE)` call you use on web and iOS runs here too. Native Android support requires Capacitor (`@capacitor/core` `^7.4.2` or `^8`), and `yarn cap sync`.
+On Android, capacitor-auth-manager runs **native Google sign-in** through **GoogleSignIn** (the account chooser `@codetrix-studio/capacitor-google-auth` used) and falls back to the **Credential Manager** API when GoogleSignIn fails for any reason other than a cancel. The same `auth.signIn(AuthProvider.GOOGLE)` call you use on web and iOS runs here too. Native Android support requires Capacitor (`@capacitor/core` `^7.4.2` or `^8`), and `yarn cap sync`.
 
 :::info Google-first (3.x)
 Google is the only enabled provider. Other providers are excluded from the published native sources — `auth.signIn()` with a non-Google id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`.
@@ -15,10 +15,15 @@ Google is the only enabled provider. Other providers are excluded from the publi
 
 ## Setup
 
-1. In Google Cloud / Firebase, create an **Android** OAuth client and add your app's **SHA-1/SHA-256** signing fingerprints; create (or reuse) a **Web** OAuth client.
-2. Pass that **Web** client id as `serverClientId` — Credential Manager needs it to return an id token.
+1. In Google Cloud / Firebase, create an **Android** OAuth client and add **every** signing SHA-1/SHA-256: the debug key, the upload key (locally signed APKs) and the **Play App Signing** key (every Play-installed copy is re-signed with it). Create (or reuse) a **Web** OAuth client.
+2. Pass that **Web** client id as `serverClientId` — Google returns no id token without it. If you finish sign-in in Supabase, it must be in the Google provider's client list.
 3. No `google-services.json` is needed by this plugin — it uses no Firebase native SDK.
-4. A Google account on the device gives the fastest path (the Credential Manager bottom sheet). With none — or when the sheet offers no authorized account — the default `androidFlow: 'auto'` falls back to the **Sign in with Google button flow**, which lets the user pick or add an account. Force one path with `androidFlow: 'bottom-sheet'` or `'button'`, in the provider options or per call.
+4. The default `androidFlow: 'auto'` (since 3.1.0) shows GoogleSignIn's account chooser, which can also add an account. If GoogleSignIn fails for any reason other than a cancel, it falls back to Credential Manager (the bottom sheet, then the Sign in with Google button). Pin one path with `'legacy'`, `'credential-manager'`, `'bottom-sheet'` or `'button'`, in the provider options or per call.
+5. Every native error names Google's own status, and a configuration error adds the installed package and signing SHA-1. Read them with `adb logcat -s CapacitorAuthManager` (warnings and errors are always logged since 3.1.1).
+
+:::warning 3.0.0 on Play builds
+3.0.0 ran Credential Manager alone, and Play-installed builds failed with an error and no account picker. Upgrade to 3.1.1. Do not force `com.google.android.gms:play-services-auth` 22.x in your app: 22.0.0 removed GoogleSignIn, so the package pins 21.6.0.
+:::
 
 The plugin declares only `INTERNET`. Nothing else is merged into your manifest.
 

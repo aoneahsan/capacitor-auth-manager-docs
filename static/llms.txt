@@ -1,6 +1,6 @@
 # Capacitor Auth Manager
 
-> Google sign-in for Capacitor and the web. Documentation for 3.0.0; Google is the only enabled provider. Firebase is managed by the consuming app.
+> Google sign-in for Capacitor and the web. Documentation for 3.1.1; Google is the only enabled provider. Firebase is managed by the consuming app.
 
 ## Integration contract
 
