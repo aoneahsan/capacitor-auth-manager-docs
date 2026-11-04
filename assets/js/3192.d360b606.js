@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcapacitor_auth_manager_docs||=[]).push([[3192],{3192(a,c,e){e.d(c,{createArchitectureServices:()=>r.S});var r=e(4549);e(184)}}]);

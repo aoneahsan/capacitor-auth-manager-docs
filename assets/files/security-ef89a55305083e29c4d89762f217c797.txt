@@ -1,0 +1,24 @@
+# Capacitor Auth Manager — Security Contact (RFC 9116)
+# https://capacitor-auth-manager-docs.aoneahsan.com/.well-known/security.txt
+
+Contact: mailto:aoneahsan@gmail.com
+Contact: https://aoneahsan.com
+Expires: 2027-06-23T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://capacitor-auth-manager-docs.aoneahsan.com/.well-known/security.txt
+
+# Responsible disclosure
+#
+# capacitor-auth-manager handles authentication, so security reports are taken
+# seriously. Please report any issue affecting the library (web providers, the
+# native plugin, storage, or token handling) via email to aoneahsan@gmail.com.
+# Include:
+#
+#   1. A description of the issue and the affected component.
+#   2. Steps to reproduce.
+#   3. The impact you assess.
+#   4. Your contact details and (optionally) a PGP public key.
+#
+# Initial response target: within 72 hours.
+# Out of scope: denial-of-service, social engineering, and findings that depend
+# on a compromised end-user device or a misconfigured consumer backend.

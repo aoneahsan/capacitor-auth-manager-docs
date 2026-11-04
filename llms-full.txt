@@ -1,0 +1,3632 @@
+# capacitor-auth-manager 3.1.1
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/about-the-author -->
+
+---
+id: about-the-author
+title: About the Author
+sidebar_label: About
+description: capacitor-auth-manager is built and maintained by Ahsan Mahmood, a full-stack engineer and open-source author.
+---
+
+# About the author
+
+`capacitor-auth-manager` is built and maintained by **Ahsan Mahmood**, a full-stack engineer who ships open-source libraries for the React, Capacitor, and TypeScript ecosystems.
+
+<div className="cam-author-card">
+
+**Ahsan Mahmood** — full-stack engineer, open-source author.
+
+- Website: [aoneahsan.com](https://aoneahsan.com)
+- Email: [aoneahsan@gmail.com](mailto:aoneahsan@gmail.com)
+- LinkedIn: [linkedin.com/in/aoneahsan](https://linkedin.com/in/aoneahsan)
+- GitHub: [github.com/aoneahsan](https://github.com/aoneahsan)
+- npm: [npmjs.com/~aoneahsan](https://www.npmjs.com/~aoneahsan)
+
+</div>
+
+## The project
+
+The library standardizes authentication across web and mobile projects so teams do not rebuild auth orchestration, state handling, provider configuration, and framework glue for every new product. It is MIT-licensed and open to contributions.
+
+- npm package: [`capacitor-auth-manager`](https://www.npmjs.com/package/capacitor-auth-manager)
+- Source: [github.com/aoneahsan/capacitor-auth-manager](https://github.com/aoneahsan/capacitor-auth-manager)
+- Issues: [GitHub Issues](https://github.com/aoneahsan/capacitor-auth-manager/issues)
+- Docs source: [github.com/aoneahsan/capacitor-auth-manager-docs](https://github.com/aoneahsan/capacitor-auth-manager-docs)
+
+## Support the work
+
+If this library saved you time, you can support continued maintenance via [aoneahsan.com](https://aoneahsan.com). Contributions, issues, and pull requests are welcome — read the [Contributing Guide](https://github.com/aoneahsan/capacitor-auth-manager/blob/main/CONTRIBUTING.md) in the repository.
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/api/auth-singleton -->
+
+---
+id: auth-singleton
+title: The auth singleton
+sidebar_label: auth singleton
+description: Complete API reference for the auth singleton in capacitor-auth-manager — every method for configuration, sign-in, state, tokens, and account management.
+---
+
+# The `auth` singleton
+
+`auth` is the single, framework-agnostic entry point for every authentication operation in capacitor-auth-manager. You import one shared instance and call methods on it directly — there is no class to construct and no context provider to mount.
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+```
+
+On the web, the singleton auto-initializes the first time it is constructed (when `window` exists). You still call `configure()` to register providers. The React, Vue, and Angular adapters all wrap this same singleton, so every method below is reachable from any framework.
+
+`AuthState` is `{ user, isLoading, isAuthenticated, provider }` — it does not carry raw tokens. Read tokens with `getIdToken()`.
+
+:::info Google-first (3.x)
+The method surface below is the full API, but only **Google** is enabled right now. Calls that target a non-Google provider — `signIn`, `linkAccount`, etc. — throw `AuthErrorCode.PROVIDER_NOT_ENABLED`. The non-Google examples on this page illustrate the call shape for when those providers are re-enabled. Use the `AuthProvider` enum (e.g. `AuthProvider.GOOGLE`); the string `'google'` also works.
+:::
+
+## Prepare the Google SDK
+
+Call `await auth.prepare(AuthProvider.GOOGLE)` during browser bootstrap, after configuration and before enabling sign-in buttons. It initializes the provider without prompting. Keep sign-in in a direct user click handler.
+
+## Configuration
+
+### `configure(config)`
+
+Merges provider definitions and global options into the singleton. Synchronous. This is the usual setup call. If `config.providers` is non-empty it also re-attempts session restore, so a persisted session is rehydrated even when the singleton auto-initialized before `configure()` ran.
+
+```typescript
+configure(config: AuthManagerConfig): void
+```
+
+```typescript
+auth.configure({
+  providers: { google: { clientId: 'YOUR_CLIENT_ID' } },
+  persistence: 'local',
+  autoRefreshToken: true,
+});
+```
+
+### `initialize(config?)`
+
+Asynchronous initialization: merges optional config, configures the logger and storage, and restores any persisted auth state. Calling it without a config when already initialized is a no-op; concurrent first-time calls are coalesced so state restore runs once.
+
+```typescript
+initialize(config?: AuthManagerConfig): Promise<void>
+```
+
+## Sign-in and sign-out
+
+### `signIn(providerOrOptions)`
+
+Signs the user in with a configured provider. Accepts either a provider id string or a `SignInOptions` object (whose `credentials` and `options` are forwarded to the provider). Resolves to an `AuthResult` and updates `AuthState`.
+
+```typescript
+signIn(providerOrOptions: string | SignInOptions): Promise<AuthResult>
+```
+
+Throws an `AuthError` with code `auth/missing-configuration` when the named provider was never passed to `configure()`. Any provider-thrown error is normalized through `AuthError.fromError`.
+
+```typescript
+import { auth, AuthProvider } from 'capacitor-auth-manager';
+
+const result = await auth.signIn(AuthProvider.GOOGLE);
+
+// Object form (roadmap shape — non-Google providers throw PROVIDER_NOT_ENABLED in 3.x):
+await auth.signIn({
+  provider: 'email-password',
+  credentials: { email: 'user@example.com', password: 'secret' },
+});
+```
+
+### `signOut(options?)`
+
+Signs out of the active provider, or of `options.provider` when supplied. Clears stored session state and refresh timers. With no specific provider, all refresh timers are cleared. A no-op (logs a warning) when there is no active session.
+
+```typescript
+signOut(options?: SignOutOptions): Promise<void>
+```
+
+## State
+
+All four readers below are synchronous and reflect the in-memory state.
+
+```typescript
+getCurrentUser(): AuthUser | null      // the signed-in user, or null
+getAuthState(): AuthState              // a shallow copy of { user, isLoading, isAuthenticated, provider }
+isAuthenticated(): boolean             // convenience for state.isAuthenticated
+getCurrentProvider(): string | null    // id of the active provider, or null
+```
+
+### `onAuthStateChange(listener)`
+
+Subscribes to auth-state changes. The listener is invoked immediately with the current state, then on every change. Returns an unsubscribe function.
+
+```typescript
+onAuthStateChange(listener: AuthStateListener): () => void
+```
+
+```typescript
+const unsubscribe = auth.onAuthStateChange((state) => {
+  console.log(state.isAuthenticated, state.user?.email);
+});
+// later: unsubscribe();
+```
+
+## Tokens
+
+### `refreshToken(provider?)`
+
+Refreshes the session for the active provider (or the named one). Resolves to a fresh `AuthResult` and updates the stored user.
+
+```typescript
+refreshToken(provider?: string): Promise<AuthResult>
+```
+
+Throws `auth/no-auth-session` when there is no session, and `auth/operation-not-supported` when the resolved provider does not implement refresh. (Note: `auth/operation-not-supported` is a string code, not a member of the `AuthErrorCode` enum.)
+
+### `getIdToken(options?)`
+
+Returns the current ID token for the active provider (or `options.provider`), delegating to the provider's `getIdToken`. The library does not verify ID-token signatures in the browser — verify the token on your server.
+
+```typescript
+getIdToken(options?: GetIdTokenOptions): Promise<string>
+```
+
+Throws `AuthErrorCode.NO_AUTH_SESSION` with no session, and `AuthErrorCode.OPERATION_NOT_ALLOWED` when the provider does not expose ID tokens.
+
+```typescript
+const idToken = await auth.getIdToken({ forceRefresh: true });
+```
+
+## Account management
+
+Each method delegates to the active provider. A provider that does not implement the operation throws an `AuthError` with code `AuthErrorCode.OPERATION_NOT_ALLOWED`; calling one with no active session throws `AuthErrorCode.NO_AUTH_SESSION`.
+
+```typescript
+linkAccount(options: LinkAccountOptions): Promise<AuthResult>
+unlinkAccount(options: UnlinkAccountOptions): Promise<void>
+revokeAccess(token?: string, provider?: string): Promise<void>
+updateProfile(options: UpdateProfileOptions): Promise<AuthUser>
+deleteAccount(options?: DeleteAccountOptions): Promise<void>
+```
+
+```typescript
+await auth.linkAccount({ provider: 'facebook' }); // roadmap shape — non-Google ids throw PROVIDER_NOT_ENABLED in 3.x
+await auth.updateProfile({ displayName: 'New Name' });
+await auth.revokeAccess();
+await auth.deleteAccount(); // also clears local session + timers
+```
+
+## Provider introspection
+
+```typescript
+isProviderConfigured(name: string): boolean        // was this provider passed to configure()?
+getConfiguredProviders(): string[]                 // names supplied to configure()/initialize()
+getAvailableProviders(): Promise<string[]>         // providers usable in the current environment
+getSupportedProviders(): Promise<string[]>         // enabled registered providers (Google only)
+isProviderSupported(provider: string): Promise<boolean>
+```
+
+```typescript
+if (auth.isProviderConfigured('google')) {
+  await auth.signIn('google');
+}
+```
+
+## Lifecycle
+
+### `dispose()`
+
+Tears the singleton down: clears all refresh timers, clears registered providers, and removes all state listeners. Synchronous.
+
+```typescript
+dispose(): void
+```
+
+## Related
+
+- [Quick start](/getting-started/quick-start)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/api/errors -->
+
+---
+id: errors
+title: Errors and error codes
+sidebar_label: Errors
+description: Reference for AuthError, isAuthError, and the AuthErrorCode enum in capacitor-auth-manager, including the auth/<slug> code format and handling patterns.
+---
+
+# Errors and error codes
+
+Every failure surfaced by capacitor-auth-manager is an `AuthError` — an `Error` subclass with a stable, machine-readable `code`. You branch on `error.code` rather than parsing messages, which keeps your handling resilient across versions and providers.
+
+```typescript
+import { AuthError, isAuthError, AuthErrorCode } from 'capacitor-auth-manager';
+```
+
+## `AuthError`
+
+```typescript
+class AuthError extends Error {
+  code: string;
+  message: string;
+  provider?: AuthProvider;
+  details?: Record<string, unknown>;
+  constructor(
+    code: string,
+    message: string,
+    provider?: AuthProvider,
+    details?: Record<string, unknown>
+  );
+  toJSON(): { name; code; message; provider; details };
+}
+```
+
+| Member | Notes |
+|--------|-------|
+| `name` | Always `'AuthError'`. |
+| `code` | An `auth/<slug>` string, normally an `AuthErrorCode` value. |
+| `provider` | The `AuthProvider` that raised it, when known. |
+| `details` | A sanitized, shallow, JSON-safe bag (see below). |
+
+### `AuthError.fromError(error, provider?)`
+
+A static helper the singleton uses internally to normalize anything thrown by a provider into an `AuthError`. If the input is already an `AuthError` it is returned unchanged. Otherwise it defaults the code to `auth/internal-error`, then maps common message patterns: text containing `network` or `timeout` becomes `auth/network-error`, and `cancelled`/`canceled` becomes `auth/user-cancelled`. If the original object carries a `code` that is a valid `AuthErrorCode`, that code is preserved.
+
+### Sanitized `details`
+
+`AuthError.sanitizeDetails` (run in the constructor) redacts keys matching `token`, `secret`, `password`, `authorization`, `code_verifier`, `client_secret`, `credential`, `api[-_]?key`, or `cookie` to `'[redacted]'`, and keeps only JSON-safe primitives (string, number, boolean, null). This prevents tokens or PII from a raw error or a token-endpoint response body from being captured into `details` (and thus logged or serialized via `toJSON()`).
+
+## `isAuthError(error)`
+
+A type guard. Returns `true` for an `AuthError` instance, and also for a plain object whose `name` is `'AuthError'` and which has a defined `code` (useful across realm boundaries where `instanceof` can fail).
+
+```typescript
+function isAuthError(error: unknown): error is AuthError;
+```
+
+## The `AuthErrorCode` enum
+
+`AuthErrorCode` is a string enum. Every value follows the `auth/<slug>` format — for example `AuthErrorCode.WRONG_PASSWORD === 'auth/wrong-password'`. Because the values are plain strings you can compare `error.code` against either the enum member or the literal. The enum has 100+ members; the table below groups the important ones by theme.
+
+| Theme | Representative codes |
+|-------|----------------------|
+| Credentials & accounts | `auth/invalid-credentials`, `auth/user-not-found`, `auth/wrong-password`, `auth/email-already-in-use`, `auth/weak-password`, `auth/invalid-email`, `auth/requires-recent-login`, `auth/credential-already-in-use`, `auth/account-exists-with-different-credential`, `auth/credentials-required` |
+| Verification & OTP codes | `auth/invalid-verification-code`, `auth/invalid-code`, `auth/code-expired`, `auth/expired-action-code`, `auth/no-pending-verification`, `auth/too-many-attempts`, `auth/send-code-failed`, `auth/send-link-failed`, `auth/verification-failed` |
+| OAuth, popup & redirect | `auth/popup-blocked`, `auth/popup-closed-by-user`, `auth/redirect-cancelled-by-user`, `auth/missing-redirect-url`, `auth/invalid-state`, `auth/unauthorized-domain`, `auth/access-denied`, `auth/consent-required`, `auth/invalid-grant`, `auth/user-cancelled` |
+| PKCE & nonce | `auth/missing-code-verifier`, `auth/invalid-code-verifier`, `auth/missing-nonce`, `auth/invalid-nonce`, `auth/missing-or-invalid-nonce` |
+| Biometric | `auth/biometric-not-available`, `auth/biometric-not-enrolled`, `auth/biometric-authentication-failed`, `auth/biometric-lockout` |
+| Provider & configuration | `auth/provider-not-enabled`, `auth/operation-not-allowed`, `auth/unsupported-provider`, `auth/missing-configuration`, `auth/missing-config`, `auth/provider-not-initialized`, `auth/provider-init-failed`, `auth/no-auth-session`, `auth/not-authenticated` |
+| Tokens | `auth/invalid-user-token`, `auth/token-expired`, `auth/user-token-expired`, `auth/invalid-token`, `auth/token-refresh-failed`, `auth/no-refresh-token` |
+| Network & server | `auth/network-error`, `auth/too-many-requests`, `auth/quota-exceeded`, `auth/server-error`, `auth/temporarily-unavailable`, `auth/internal-error`, `auth/captcha-check-failed` |
+| Storage | `auth/keychain-error`, `auth/storage-error`, `auth/no-stored-credentials` |
+
+Two notes on accuracy:
+
+- In 3.x only **Google** is enabled. Calling `signIn` (or any operation) with a non-Google provider id throws `AuthErrorCode.PROVIDER_NOT_ENABLED` (`auth/provider-not-enabled`). The other providers are re-enabled one at a time — see the [provider overview](/providers/overview).
+- Account-management methods (`linkAccount`, `unlinkAccount`, `revokeAccess`, `updateProfile`, `deleteAccount`) throw `AuthErrorCode.OPERATION_NOT_ALLOWED` when the active provider does not implement them, and `AuthErrorCode.NO_AUTH_SESSION` when there is no session. `getIdToken` is implemented by Google on web, iOS and Android.
+- Since 3.0.0 the native layers send the code across the bridge, so an error raised by Android or iOS carries the same `AuthErrorCode` values as a web one. Before that the code was inferred from the message and most native failures arrived as `auth/internal-error`.
+- `refreshToken()` throws the string code `auth/operation-not-supported` when a provider cannot refresh. That literal is not a member of the `AuthErrorCode` enum — match on the string if you handle it.
+
+## Handling pattern
+
+```typescript
+import { auth, isAuthError, AuthErrorCode } from 'capacitor-auth-manager';
+
+try {
+  await auth.signIn('google');
+} catch (error) {
+  if (!isAuthError(error)) throw error;
+
+  switch (error.code) {
+    case AuthErrorCode.POPUP_CLOSED_BY_USER:
+    case AuthErrorCode.USER_CANCELLED:
+      // user backed out — usually no message needed
+      break;
+    case AuthErrorCode.NETWORK_ERROR:
+      showRetry();
+      break;
+    case AuthErrorCode.MISSING_CONFIGURATION:
+      console.error('Provider was not configured:', error.provider);
+      break;
+    default:
+      showGenericError(error.message);
+  }
+}
+```
+
+## Related
+
+- [Quick start](/getting-started/quick-start)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/api/storage -->
+
+---
+id: storage
+title: Storage backends
+sidebar_label: Storage
+description: Reference for StorageInterface, WebStorage, and CapacitorPreferencesStorage in capacitor-auth-manager, plus how to inject a custom secure storage adapter.
+---
+
+# Storage backends
+
+capacitor-auth-manager persists the active session through a small, swappable storage abstraction. Backends store profile/session metadata. Bearer credentials are not written through these adapters. The default web backend is `localStorage`, readable by any script on the origin.
+
+```typescript
+import {
+  WebStorage,
+  CapacitorPreferencesStorage,
+  type StorageInterface,
+} from 'capacitor-auth-manager';
+```
+
+## `StorageInterface`
+
+The contract every backend implements. Values are JSON-serialized on write and parsed on read; the read methods are generic so call sites can narrow the result.
+
+```typescript
+interface StorageInterface {
+  get<T = unknown>(key: string): Promise<T | null>;
+  set<T = unknown>(key: string, value: T): Promise<void>;
+  remove(key: string): Promise<void>;
+  clear(): Promise<void>;
+}
+```
+
+`get` defaults `T` to `unknown` (not `any`), so untyped callers must narrow before use. The manager stores the session under a single key (`auth_state`) namespaced with a prefix.
+
+## `WebStorage`
+
+The default backend, constructed automatically by the singleton. It wraps the browser's `Storage` and supports three persistence modes.
+
+```typescript
+new WebStorage(
+  persistence: AuthPersistence = AuthPersistence.LOCAL,
+  prefix = 'cap_auth_',
+  logger?: Logger
+);
+```
+
+| Persistence | Backing store |
+|-------------|---------------|
+| `AuthPersistence.LOCAL` (default) | `window.localStorage` |
+| `AuthPersistence.SESSION` | `window.sessionStorage` |
+| `AuthPersistence.NONE` | in-memory (cleared on reload) |
+
+The config's `persistence: 'memory'` maps to `AuthPersistence.NONE`. Reads tolerate non-JSON values (they fall back to the raw string), and storage failures are logged through the package logger rather than thrown for reads.
+
+:::warning localStorage is readable by XSS
+`localStorage` (and `sessionStorage`) are accessible to any JavaScript on the origin, including injected or third-party scripts. Tokens stored there are exposed to cross-site-scripting attacks. On native, inject a more secure backend (below). For secrecy at rest, back storage with a Keychain/Keystore adapter.
+:::
+
+## `CapacitorPreferencesStorage`
+
+A backend for native apps, backed by `@capacitor/preferences` (iOS `UserDefaults` / Android `SharedPreferences`). It stores metadata outside the webview's `localStorage`; it does not persist Google tokens. The `@capacitor/preferences` package is an **optional peer** — install it only when you use this backend; it is lazily imported on first use.
+
+```typescript
+new CapacitorPreferencesStorage(prefix = 'cap_auth_');
+```
+
+:::note Not hardware-encrypted
+Capacitor Preferences is plain key-value storage, not hardware-encrypted. For secrecy at rest (encryption tied to the secure enclave / keystore), supply a Keychain/Keystore-backed `StorageInterface` instead.
+:::
+
+## Injecting a backend
+
+Pass any `StorageInterface` as `storage` to `configure()` (or `initialize()`). A custom backend takes precedence over the `persistence` option.
+
+```typescript
+import { auth, CapacitorPreferencesStorage } from 'capacitor-auth-manager';
+
+auth.configure({
+  storage: new CapacitorPreferencesStorage(),
+  providers: { google: { clientId: 'YOUR_CLIENT_ID' } },
+});
+```
+
+## Writing a custom secure adapter
+
+Implement the four methods over any secure store (for example a Keychain/Keystore plugin). Keep `get` and `set` JSON-aware so the manager can round-trip the session object.
+
+```typescript
+import type { StorageInterface } from 'capacitor-auth-manager';
+import { SecureStoragePlugin } from 'your-secure-storage-plugin';
+
+export class SecureStorage implements StorageInterface {
+  constructor(private prefix = 'cap_auth_') {}
+
+  async get<T = unknown>(key: string): Promise<T | null> {
+    try {
+      const { value } = await SecureStoragePlugin.get({ key: this.prefix + key });
+      return value ? (JSON.parse(value) as T) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async set<T = unknown>(key: string, value: T): Promise<void> {
+    const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
+    await SecureStoragePlugin.set({ key: this.prefix + key, value: stringValue });
+  }
+
+  async remove(key: string): Promise<void> {
+    await SecureStoragePlugin.remove({ key: this.prefix + key });
+  }
+
+  async clear(): Promise<void> {
+    // Remove only this package's keys (those starting with `this.prefix`).
+  }
+}
+```
+
+```typescript
+auth.configure({ storage: new SecureStorage() });
+```
+
+## Related
+
+- [Quick start](/getting-started/quick-start)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/api/types -->
+
+---
+id: types
+title: Types and interfaces
+sidebar_label: Types
+description: Reference for capacitor-auth-manager's exported TypeScript types — AuthUser, AuthResult, AuthState, AuthManagerConfig, SignInOptions, and the provider options.
+---
+
+# Types and interfaces
+
+capacitor-auth-manager is TypeScript-first: every configuration object, result, and user shape is a named, exported type. This page documents the types you interact with most. They are all re-exported from the package root.
+
+```typescript
+import type {
+  AuthUser,
+  AuthResult,
+  AuthCredential,
+  AuthState,
+  AuthManagerConfig,
+  SignInOptions,
+  SignOutOptions,
+  ProviderOptions,
+  AuthPersistence,
+} from 'capacitor-auth-manager';
+```
+
+`AuthProvider`, `AuthErrorCode`, `AuthPersistence`, `BiometricType`, and `AppleAuthScope` are `enum`s (runtime values), so import them without `type` when you need their members.
+
+## `AuthManagerConfig`
+
+Passed to `configure()` and `initialize()`.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `providers` | `Record<string, ProviderOptions>` | Map of provider id → its options. |
+| `persistence` | `'local' \| 'session' \| 'memory'` | Where the web session is stored. Default `local`. |
+| `autoRefreshToken` | `boolean` | Schedule token refresh before expiry. |
+| `tokenRefreshBuffer` | `number` | Milliseconds before expiry to refresh. Default `300000` (5 min). |
+| `enableLogging` | `boolean` | Toggle the internal logger. |
+| `logLevel` | `'debug' \| 'info' \| 'warn' \| 'error'` | Logger verbosity. |
+| `storage` | `StorageInterface` | Custom storage backend. See [Storage](/api/storage). |
+
+## `AuthState`
+
+The shape emitted by `onAuthStateChange` and returned by `getAuthState()`. It does not carry raw tokens.
+
+| Field | Type |
+|-------|------|
+| `user` | `AuthUser \| null` |
+| `isLoading` | `boolean` |
+| `isAuthenticated` | `boolean` |
+| `provider` | `string \| null` |
+
+`AuthStateListener` is `(state: AuthState) => void`.
+
+## `AuthUser`
+
+The authenticated user. `uid` is the only required field.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `uid` | `string` | Stable user id. |
+| `email` | `string \| null` | Optional. |
+| `emailVerified` | `boolean` | Optional. |
+| `displayName` | `string \| null` | Optional. |
+| `photoURL` | `string \| null` | Optional. |
+| `phoneNumber` | `string \| null` | Optional. |
+| `isAnonymous` | `boolean` | Optional. |
+| `tenantId` | `string \| null` | Optional. |
+| `providerData` | `UserInfo[]` | Per-provider identities. |
+| `metadata` | `UserMetadata` | Creation / sign-in timestamps. |
+| `refreshToken` | `string` | Optional. |
+| `customClaims` | `Record<string, string \| number \| boolean \| null>` | Optional. |
+
+`UserInfo` carries `{ providerId, uid, displayName?, email?, phoneNumber?, photoURL? }`. `UserMetadata` carries `{ creationTime?, lastSignInTime?, lastRefreshTime? }` (all ISO strings).
+
+## `AuthResult`
+
+Returned by `signIn`, `refreshToken`, and `linkAccount`.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `user` | `AuthUser` | The resulting user. |
+| `credential` | `AuthCredential` | Tokens for this sign-in. |
+| `additionalUserInfo` | `AdditionalUserInfo` | Optional. `{ isNewUser, providerId, profile?, username? }`. |
+| `operationType` | `'signIn' \| 'link' \| 'reauthenticate'` | Optional. |
+
+## `AuthCredential`
+
+| Field | Type |
+|-------|------|
+| `providerId` | `string` |
+| `signInMethod` | `string` |
+| `accessToken` | `string` (optional) |
+| `idToken` | `string` (optional) |
+| `refreshToken` | `string` (optional) |
+| `expiresAt` | `number` (optional, epoch ms) |
+| `tokenType` | `string` (optional) |
+| `scope` | `string` (optional) |
+| `rawNonce` | `string` (optional) |
+
+## `SignInOptions`
+
+The object form accepted by `auth.signIn`.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `provider` | `AuthProvider` | The provider to use (enum or its string value). |
+| `credentials` | `AuthCredentials` | Optional. Union of email/password, phone, username, code, OAuth, and custom credential shapes. |
+| `options` | `SignInProviderOptions` | Optional. `scopes`, `customParameters`, `loginHint`, `prompt`, `state`, `nonce`, `pkceEnabled`, and more. |
+
+`SignOutOptions` carries `{ provider?, revokeToken?, clearCache?, redirectUrl? }`.
+
+## `ProviderOptions`
+
+A union of every provider's option interface — `GoogleAuthOptions`, `AppleAuthOptions`, `MicrosoftAuthOptions`, `FacebookAuthOptions`, `GitHubAuthOptions`, `SlackAuthOptions`, `LinkedInAuthOptions`, `FirebaseAuthOptions`, `EmailMagicLinkOptions`, `SmsAuthOptions`, `EmailPasswordOptions`, `PhonePasswordOptions`, `UsernamePasswordOptions`, `EmailCodeOptions`, and `BiometricAuthOptions`. Each provider page documents its own fields.
+
+## `GoogleWebFlow` and `GoogleAndroidFlow`
+
+```typescript
+type GoogleWebFlow = 'auto' | 'one-tap' | 'popup';
+type GoogleAndroidFlow = 'auto' | 'legacy' | 'credential-manager' | 'bottom-sheet' | 'button';
+```
+
+Flow selectors for the Google provider (`GoogleAuthOptions.webFlow` / `.androidFlow`, also accepted per call in
+`SignInProviderOptions`). See [Web platform](/platforms/web) and [Android platform](/platforms/android).
+
+## `AuthProvider`
+
+String enum of provider ids: `GOOGLE`, `APPLE`, `MICROSOFT`, `FACEBOOK`, `GITHUB`, `SLACK`, `LINKEDIN`, `FIREBASE`, `EMAIL_MAGIC_LINK`, `MAGIC_LINK`, `SMS`, `EMAIL_PASSWORD`, `PHONE_PASSWORD`, `USERNAME_PASSWORD`, `EMAIL_CODE`, `BIOMETRIC`. You can pass the enum member or its string value (for example `AuthProvider.GOOGLE` or `'google'`).
+
+In 3.x only `AuthProvider.GOOGLE` is **enabled**. The other members exist in the enum, but signing in with them throws `AuthErrorCode.PROVIDER_NOT_ENABLED` until each provider is re-enabled. See the [provider overview](/providers/overview).
+
+## `AuthPersistence`
+
+```typescript
+enum AuthPersistence { LOCAL = 'local', SESSION = 'session', NONE = 'none' }
+```
+
+The config accepts the literals `'local' | 'session' | 'memory'`; `'memory'` maps internally to `AuthPersistence.NONE` (in-memory, non-persisted).
+
+## Related
+
+- [Quick start](/getting-started/quick-start)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/changelog -->
+
+---
+id: changelog
+title: Changelog
+sidebar_label: Changelog
+description: Version history and migration requirements for capacitor-auth-manager.
+---
+
+# Changelog
+
+All notable changes to `capacitor-auth-manager` are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [3.1.1] — 2026-10-29
+
+### Fixed
+
+- **Android sign-in failures now reach logcat on release builds.** The native logger was off unless logging
+  was enabled, and the JS layer never forwards `enableLogging` to native, so a failed Google sign-in left
+  nothing in logcat. Warnings and errors are now always written (tag `CapacitorAuthManager`); debug and info
+  stay opt-in. They carry codes, the package name and the signing SHA-1 — never an email address or token.
+
+## [3.1.0] — 2026-10-29
+
+### Fixed
+
+- **Android Google sign-in failed on Play-installed builds with no account picker.** 3.0.0 ran Credential
+  Manager alone, which refused the request before showing any UI, while the same OAuth clients and SHA-1s
+  worked through GoogleSignIn in the apps' previous releases. The default `androidFlow: 'auto'` now runs
+  GoogleSignIn first — the exact path `@codetrix-studio/capacitor-google-auth` used, with the result
+  delivered through Capacitor's `@ActivityCallback` — and falls back to Credential Manager on any failure
+  except a cancel.
+- **Android errors no longer hide Google's own cause.** Every rejection carries Google's exception class and
+  message (`[28444] …`, status codes); configuration errors add the installed package and signing SHA-1.
+- **R8 keep rules now reach consuming apps.** They lived in `proguard-rules.pro`, which only applies to the
+  library's own unminified build; they are now in `consumer-rules.pro`.
+
+### Added
+
+- `androidFlow` values `'legacy'` (GoogleSignIn only) and `'credential-manager'` (the 3.0.0 behaviour).
+
+### Changed
+
+- Android depends on `com.google.android.gms:play-services-auth` **21.6.0**, pinned because 22.0.0 removed
+  GoogleSignIn. `googleid` stays on 1.1.1 (see `docs/PACKAGES.md`).
+
+## [3.0.0] — 2026-10-09
+
+### Breaking changes
+
+- Node installation/tooling floor is now 24; iOS requires 15 and GoogleSignIn 10.x. Angular adapters support 22.x; older unverified ranges are removed.
+- Web auto sign-in may return a popup access token instead of an ID token. Firebase handoff must use `GoogleAuthProvider.credential(idToken ?? null, accessToken ?? null)`.
+- Default native storage no longer duplicates bearer credentials on disk. The Android legacy credential store and iOS credential copies are removed on upgrade; reauthentication may be required.
+
+### Added
+
+- `auth.prepare(provider)` initializes the SDK before a click without opening a sign-in prompt.
+- A packaged AI integration guide for React/Firebase, native setup, exact imports, error handling, and session ownership.
+- Google-flow, storage, provider initialization, and sign-out race regression tests; tarball smoke loads every public JavaScript entry in both formats.
+
+### Fixed
+
+- Missing requested nonce, expiry, subject, and Workspace-domain claims are rejected in the web ID-token path.
+- Duplicate Google calls fail explicitly; provider initialization is coalesced and invalidated safely on disposal.
+- A late session restore cannot authenticate after sign-out; disabled providers are excluded from the supported-provider list.
+- One-Tap and popup waits are bounded; sign-out/disposal settles outstanding requests and late callbacks are ignored. Userinfo requests have a network deadline.
+- Google web provider construction accepts the documented options shape.
+- The packed Android manifest declares only INTERNET; consumer R8 rules preserve reflected plugin entry points.
+- Native Swift/Java sources are included in the packed artifact. CommonJS root/framework adapters share one auth singleton, and providers/web exports its Google class.
+- iOS credential copies no longer enter UserDefaults. Android removes deprecated security-crypto and keeps credentials in memory.
+
+### Changed
+
+- Direct dependencies updated to current stable versions, retaining the documented TypeScript 6 ecosystem pin.
+- Android uses Credential Manager 1.6.0 and googleid 1.1.1; GoogleSignIn is 10.x.
+- Yarn owns local build/test scripts. Trapeze tooling is retained for native configuration.
+
+
+## [2.5.0] — unpublished source changes, 2026-09-08
+
+Google sign-in hardened on every layer. Closes all five entries that `2.4.3` documented in
+`docs/REPORTED-ISSUES.md`, fixes the runtime defects found while reviewing the native bridge, and gives the
+native layers a real error-code channel. The Android plugin and the example app are **compiled and run on an
+emulator** (Gradle 8.14.3 / AGP 8.13 / JDK 21 / compileSdk 36, emulator API 37) before release; the iOS
+change below is the one part that no machine here can compile, and it ships unverified until the next iOS
+device test.
+
+### Fixed
+
+- **ISSUE-001 — bare Node ESM could not import the package.** Every relative specifier in `src/` now carries
+  its `.js` extension (155 specifiers across 41 files), so `dist/esm` resolves under Node's ESM resolver as
+  well as under bundlers. Guarded by the new tarball smoke test.
+- **ISSUE-002 — importing the package threw `window is not defined`.** The `auth` singleton is created lazily
+  on first use (a `Proxy` keeps `import { auth }` unchanged), and `WebStorage` falls back to in-memory storage
+  when `window` is absent or the browser refuses storage access (private mode). `"sideEffects": false` is now
+  true.
+- **ISSUE-003 — `@capacitor/core` was declared optional but required.** It is a required peer now.
+- **ISSUE-004 — `capacitor-biometric-authentication` was installed for every consumer.** Removed from
+  `optionalDependencies`; it returns as an optional peer when the biometric provider is re-enabled.
+- **ISSUE-005 — `engines.node` was untested and disagreed with `.nvmrc`.** The floor is now `>=24.0.0`
+  (owner decision: current and latest Node only, no legacy targets) and CI builds, lints and runs the tarball
+  smoke test on Node 24 and 26. Node is a build/install requirement only — the package runs in a browser or a
+  webview.
+- **Web One-Tap dismissed by the user hung `signIn()` forever.** A dismissed prompt now rejects with
+  `USER_CANCELLED`; a suppressed prompt rejects with `POPUP_BLOCKED` (or falls back, see Added).
+- **Native `getCurrentUser()` returned `{}` and the app treated it as a signed-in user.** The bridge now
+  normalizes any result without a string `uid` to `null`, so a cold start with no session is "signed out"
+  instead of authenticated-with-an-empty-user.
+- **Android `getCurrentUser()` resolved the same plugin call twice** when no provider was active. It answers
+  exactly once and remembers which provider owns the restored session.
+- **Android manifest declared `READ_SMS`, `RECEIVE_SMS` and `USE_BIOMETRIC`** for providers that are disabled.
+  Only `INTERNET` remains; the SMS permissions are Play-restricted and were a store-rejection risk for every
+  consumer.
+- Per-call sign-in options (`nonce`, `loginHint`, the new flow selectors) now reach the native side; they
+  were previously dropped because the manager flattens them before calling the provider.
+- **`auth.getIdToken()` failed on iOS and Android** with `OPERATION_NOT_ALLOWED` even though both native
+  layers implement it, because the native bridge never exposed the method the manager looks for. It is
+  implemented now, and the Android plugin method also accepts the flat `{ provider, forceRefresh }` shape
+  the bridge sends (it previously read a nested `options` object only).
+- **Native errors reached JavaScript without a code.** Android rejected with a bare message and iOS rejected
+  with `localizedDescription`, so `AuthError.fromError` had to guess the code by substring-matching the
+  message: anything that did not contain "cancelled", "network" or "timeout" surfaced as
+  `auth/internal-error`. Both platforms now send a real `AuthErrorCode` — a cancelled sheet is
+  `auth/user-cancelled`, an interrupted request is `auth/network-error`, a missing `serverClientId` is
+  `auth/missing-configuration`, and so on. (Android verified on an emulator; iOS unverified, see above.)
+- **Android fell back to plaintext `SharedPreferences`** when the keystore refused a master key, writing ID
+  tokens to disk in the clear with no signal. It now keeps the session in memory for the life of the process
+  and logs the degradation; `AuthStorage.isEncrypted()` reports which mode is active.
+- **`npm run configure` emitted a `GoogleSignInOptions` manifest entry** from the deprecated
+  `com.google.android.gms.auth.api.signin` flow this plugin stopped using in 2.4.2. Pasting it did nothing;
+  the wizard now says Google needs no manifest entry.
+
+### Added
+
+- **`GoogleAuthOptions.webFlow`** (`'auto' | 'one-tap' | 'popup'`, default `'auto'`): One-Tap first, then a
+  Google Identity Services OAuth2 **popup fallback** whenever the browser does not display One-Tap (cooldown,
+  FedCM opt-out, third-party-cookie settings). The popup returns `accessToken` plus the Google profile;
+  Firebase accepts `GoogleAuthProvider.credential(idToken ?? null, accessToken)`.
+- **`GoogleAuthOptions.androidFlow`** (`'auto' | 'bottom-sheet' | 'button'`, default `'auto'`): the
+  Credential Manager bottom sheet first, then the explicit **Sign in with Google button flow**
+  (`GetSignInWithGoogleOption`) when no authorized account is offered — that flow can add an account.
+- Both selectors are also accepted per call: `auth.signIn({ provider, options: { webFlow: 'popup' } })`.
+- `getAuth()` export alongside `auth` for callers who prefer an explicit accessor.
+- Web `getIdToken()` and `revokeAccess()` implementations (revoke uses the OAuth2 token when present).
+- **Tarball smoke test** (`yarn smoke:tarball`, `node:test`): packs the package, installs the tarball into a
+  scratch directory and imports it under bare Node (ESM and CJS). Wired into `prepublishOnly`.
+
+### Changed
+
+- `@capacitor/core` peer: optional → required.
+- Android: `androidx.credentials` 1.3.0 → 1.5.0, `security-crypto` 1.1.0-alpha06 → 1.1.0 (stable),
+  AGP/compileSdk/minSdk fallbacks aligned with Capacitor 8 (8.13.0 / 36 / 24), `lintOptions` → `lint`,
+  the unused direct `play-services-auth` dependency removed (still provided transitively), Facebook/MSAL
+  ProGuard rules dropped.
+- `packageManager: yarn@4.17.1` declared so corepack picks the right Yarn.
+- Google provider manifest no longer names a non-existent `@google/gsi` npm package.
+- README: `renderButton` is documented as what it is — a method on `GoogleAuthProviderWeb`, reached by
+  importing `capacitor-auth-manager/providers/web` — rather than implied to be on the `auth` singleton,
+  where readers could not find it.
+
+### Not changed on purpose
+
+- iOS `GoogleSignIn ~> 7.1` stays. A major SDK bump without a compile check is not acceptable; it moves in
+  a release that is verified on a Mac.
+
+## [2.4.4] - 2026-07-25
+
+### Fixed
+
+- **The README stated the previous version.** The at-a-glance `Version` row is a static duplicate of
+  `package.json.version`, so it drifted the moment the version was bumped — it shipped stale in eight of the
+  fleet's packages at once. The row, and any native version string, now move with the release.
+
+## [2.4.3] — 2026-07-25
+
+**Documentation and metadata only — no runtime changes.** Brings the package to the house README
+standard and, importantly, **documents two High-severity defects that have been shipping since before
+this release**. They are stated plainly in the README's Limitations section rather than left for a
+consumer to discover at runtime:
+
+- **The published ESM build does not resolve under bare Node.** `moduleResolution: "bundler"` emits 133
+  extensionless relative specifiers across 33 files. Bundlers resolve them; Node's ESM resolver does
+  not, so SSR, Node-resolution test runners and `node --import` all fail.
+- **Importing the package throws `window is not defined`.** A module-scope singleton in
+  `src/core/auth-manager.ts` constructs a `WebStorage` that reads `window.localStorage` unguarded. This
+  also makes `sideEffects: false` untrue.
+
+Neither is fixed here — both need a code change and a version bump beyond a documentation patch. Every
+conventional gate passes while they ship: typecheck, lint, build, the exports-map walk and even an
+esbuild bundle are all green. Only installing the tarball and importing it under bare Node catches them.
+Tracked in `docs/REPORTED-ISSUES.md` as ISSUE-001 and ISSUE-002.
+
+### Changed
+
+- README rewritten to the canonical package pattern; `Readme.md` renamed to `README.md`.
+- `homepage` moved off the npmjs.com page onto the documentation site.
+- `funding` added; `keywords` reduced from 24 to 9 honest terms.
+- `files` allowlist corrected to include the `bin` script explicitly; inert `.npmignore` removed.
+
+## [2.4.2] — 2026-06-30
+
+**Native now actually compiles — Google-only native (verified).** `2.4.1` shipped native sources that
+had never been built in a real app; an end-to-end integration compile (a throwaway Capacitor app, real
+Android `gradle assembleDebug` + iOS `pod lib lint`) surfaced and fixed the breakage. **Use `2.4.2`, not
+`2.4.1`** (which is deprecated).
+
+### Changed
+
+- **Native is Google-only.** Removed the Facebook (`FBSDKLoginKit` / `facebook-login`) and Microsoft
+  (`MSAL`) native dependencies so the plugin no longer drags heavy auth SDKs into every consumer app. The
+  disabled providers' native code moved to `android/disabled-native-providers/` and
+  `ios/disabled-native-providers/` (kept for re-enablement; not compiled, not shipped). `ProviderFactory`
+  (Android) and `createProvider` (iOS) are trimmed to Google; the JS layer already reports
+  `PROVIDER_NOT_ENABLED` for the rest.
+- iOS podspec slimmed to `Capacitor` + `GoogleSignIn ~> 7.1`; removed the dangling
+  `SWIFT_OBJC_BRIDGING_HEADER` (the file never existed; GoogleSignIn 7 is pure Swift).
+
+### Fixed (native compile errors that blocked every consumer build)
+
+- **Android:** `com.facebook.android:facebook-login:17.0.3` was unresolvable → build failed before any
+  Java compiled. `GoogleAuthProvider` caught `GoogleIdTokenParsingException`, a checked exception
+  `GoogleIdTokenCredential.createFrom` doesn't declare in googleid 1.1.1. `getIdToken` called the throwing
+  `JSObject.getBoolean(...)` unguarded → unreported `JSONException`. Verified with `gradle :…:assembleDebug`.
+- **iOS:** `CapacitorAuthManager` passed `AuthPersistence` / `AuthProvider` enums where the storage API
+  expects `String` (`.rawValue`). `Plugin.removeAllListeners(_:)` now `override public`s Capacitor 8's
+  built-in and delegates to `super`. Verified with `pod lib lint`.
+
+> Both platforms now build in a clean Capacitor 8 app. Still verify Google sign-in on a real device before
+> the fleet rollout (a successful compile is not a runtime test).
+
+## [2.4.1] — 2026-06-30
+
+**Google-first production refocus.** This release turns the package into a working, **Firebase-agnostic
+Google authentication plugin** across **web, iOS and Android** — a drop-in alternative to
+`@codetrix-studio/capacitor-google-auth`. The remaining providers are being re-enabled **one at a time**
+as each is hardened and verified on device; until then they report a clear `PROVIDER_NOT_ENABLED` error.
+
+> **Versioning note:** by maintainer choice this is a **patch**. Future providers land as **minor** bumps,
+> fixes as patches, and a `3.0.0` only once all providers are working again. If your app used a non-Google
+> provider on `2.4.0`, stay on `2.4.0` until that provider is re-enabled.
+
+> **Native build caveat:** the iOS (Swift) and Android (Java) sources in this release were written to the
+> official SDK contracts but are **not compiled in CI**. Validate `2.4.1` in **one** app (web + one Android
+> device + one iOS device) before rolling it out to a fleet.
+
+### Added
+
+- **Native dispatch.** `auth.signIn(AuthProvider.GOOGLE)` (and the React/Vue/Angular `useAuth().signIn`)
+  now route to the **native Google SDK on iOS/Android** and to **Google Identity Services on web** — the
+  same call on every platform. Previously the modern API always ran the web flow, even inside a device webview.
+- **`GoogleNativeProvider`** — a platform-bridge provider that delegates to the `CapacitorAuthManager`
+  Capacitor plugin (native Google SDK) and returns `{ idToken, accessToken?, serverAuthCode?, user }`.
+- **Android Google rebuilt on Credential Manager** (`androidx.credentials` + `GoogleIdTokenCredential`),
+  replacing the deprecated, broken `GoogleSignIn` activity-result path (which never resolved).
+- **Web Google rebuilt on the GIS id-token flow** (`google.accounts.id`) — no client secret, no backend;
+  returns a Google `idToken` you can feed to `signInWithCredential(GoogleAuthProvider.credential(idToken))`.
+- `AuthCredential.serverAuthCode`, `GoogleAuthOptions.iosClientId` / `filterByAuthorizedAccounts` /
+  `autoSelectEnabled` / `nonce`, and `AuthErrorCode.PROVIDER_NOT_ENABLED`.
+
+### Changed
+
+- **Only Google is enabled.** The other 14 providers are un-registered and excluded from the published
+  build; their web implementations remain in the repo for re-enablement. `signIn()` for any of them throws
+  `AuthErrorCode.PROVIDER_NOT_ENABLED` with a clear message.
+- **No secrets persisted by default.** The manager no longer writes `idToken` / `accessToken` /
+  `refreshToken` / `serverAuthCode` to the default (unencrypted) storage — only a non-secret session
+  snapshot. Short-lived tokens are re-derived via the provider's silent restore. Inject a secure storage
+  adapter if you want token persistence.
+- **Packaging:** `prepack` now builds `dist/` (so `npm pack` produces an importable tarball, not just
+  `npm publish`); `prepublishOnly` runs build + lint; added `engines.node >=18`; `@angular/core` peer range
+  widened to include `^22`; `CHANGELOG.md` now ships; added `./package.json` export; LICENSE copyright
+  updated to 2024–2026.
+
+### Fixed
+
+- iOS Google: `emailVerified` was wrongly derived from the profile image; replaced the deprecated
+  `UIApplication.shared.windows` presenter lookup.
+- Web Google: removed the insecure client-side OAuth code→token exchange that required a `client_secret`
+  in the browser.
+
+## [2.4.0] — 2026-05-27
+
+**No runtime behavior change.** Type-safety and tooling cleanup. Public types were tightened (see below), so TypeScript consumers may surface new, helpful type errors — hence a minor (not patch) bump. No public method was removed or renamed.
+
+### Changed (type safety)
+
+- Eliminated **all 37 remaining `no-explicit-any`** occurrences — the linter now reports **0 errors and 0 warnings**.
+- **`StorageInterface` is now generic**: `get<T = unknown>(key): Promise<T | null>` and `set<T = unknown>(key, value: T)` (was `Promise<any>` / `value: any`). Existing custom-storage implementations remain compatible; direct callers now get `unknown` by default and should pass a type argument (`storage.get<AuthUser>(key)`) or narrow.
+- **Angular adapter** method parameters now use real types instead of `any`: `configure(config: AuthManagerConfig)`, `initialize(config?)`, `signIn(options?)`, `signOut(options?: SignOutOptions)`, and `AuthModuleConfig.providers: Record<string, ProviderOptions>`.
+- `catch (error: any)` blocks across the credential/biometric/registry providers now use a shared `getErrorMessage(error: unknown)` helper (`src/utils/error-message.ts`).
+- `provider-registry` loader types and `platform` checks narrowed from `any` to precise types; `phone-password` backend payload and `biometric` credential params are now typed.
+- Genuinely dynamic boundaries (optional-peer-dependency dynamic imports of `@capacitor/preferences` and `capacitor-biometric-authentication`) retain a single documented `// eslint-disable-next-line` instead of an undocumented `any`.
+
+### Changed (tooling)
+
+- Completed the ESLint 9→10 migration started in 2.2.0: renamed `eslint.config.js` → `eslint.config.mjs` and migrated the deprecated `.eslintignore` into the flat config's `ignores`. `npm run lint` output is now free of deprecation notices.
+
+## [2.3.0] — 2026-05-26
+
+**No breaking changes.** Backward-compatible minor release. This is an **internal refactor only** — no public method signature, runtime behavior, or provider list changed. There are still **15 web providers**.
+
+### Internal
+
+- Completed audit finding **F-39**: the 7 web providers that previously implemented `AuthProviderInterface` directly (`magic-link`, `sms`, `email-code`, `email-password`, `username-password`, `phone-password`, `biometric`) now extend the shared `BaseAuthProvider` — the same base used by the OAuth and Firebase providers. All **15** web providers now share one construction, event, state, and capability-detection path, removing the duplicated lifecycle/state machinery the audit flagged.
+- Provider constructors accept **either** the injected `BaseProviderConfig` (factory/registry path) **or** the provider's own bare config object (direct construction), via a shared `resolveProviderConfig` helper. Existing `new XProvider(config)` usage from `capacitor-auth-manager/providers/web` keeps working unchanged.
+- Per-provider `linkAccount`/`unlinkAccount` no-op throwers were removed in favor of `BaseAuthProvider`'s `OPERATION_NOT_ALLOWED` defaults (completing F-44). Provider-specific capability behavior is preserved (biometric `unlinkAccount` and magic-link/sms/email-code `revokeAccess` still clear their stored/pending state).
+- Base capability-default error messages reworded to a consistent "… is not supported by provider …".
+- `no-explicit-any` lint warnings reduced from 45 to 37.
+
+### Verification
+
+- `npm run build` clean · `npm run test:run` → 79 pass · `npm run lint` → 0 errors (37 warnings).
+
+## [2.2.0] — 2026-05-26
+
+**No breaking changes.** This is a backward-compatible minor release — no public method signature was removed or changed in a breaking way. It repairs broken runtime paths, hardens security, completes the stub providers, and updates dependencies. There are **15 web providers**: apple, biometric, email-code, email-password, facebook, firebase, github, google, linkedin, magic-link, microsoft, phone-password, slack, sms, username-password.
+
+### Dependencies
+
+- Updated all dependencies to current stable. Dev/build majors applied: `@types/node` 25, `eslint` 10, `typescript` 6, `@capacitor/*` 8, plus rollup, vitest, prettier, happy-dom, and others.
+- Widened peer ranges so existing consumers are not broken:
+  - `@capacitor/core`: `^7.4.2 || ^8.0.0` (optional — only for the native plugin / `CapacitorPreferencesStorage`).
+  - `@angular/core`: extended through `^21.0.0`.
+  - `react` `16.8`–`19`, `vue` `^3` remain supported.
+- `@capacitor/preferences` is an optional peer, required only for `CapacitorPreferencesStorage`.
+- iOS podspec deployment target raised from 13.0 to 14.0.
+
+### Security
+
+- **PKCE (S256)** added to the authorization-code OAuth flow (manual flows — Slack, LinkedIn) per RFC 7636: a `code_verifier` is generated and persisted with `state`/`nonce`, and `code_challenge` + `code_challenge_method=S256` are sent on the authorization request. Default-on for those flows; respects `pkceEnabled`. (Google uses Google Identity Services and Apple uses its SDK — both manage PKCE themselves.)
+- **OIDC nonce + ID-token `exp` validation.** The returned ID token's `nonce` is compared to the stored value (`auth/invalid-nonce` on mismatch) and the `exp` claim is checked. ID-token **signatures are not verified client-side** — consumers must re-validate ID tokens against the provider's JWKS server-side before trusting claims.
+- **Pluggable secure storage.** `configure()` accepts a `storage` option (any `StorageInterface`). New exported `CapacitorPreferencesStorage` backs storage with `@capacitor/preferences` (native key-value) so native tokens stay out of the webview's `localStorage`. The default web storage remains `localStorage`, which is readable by any XSS/third-party script — documented honestly; inject secure storage on native. Capacitor Preferences is not hardware-encrypted; use a Keychain/Keystore-backed adapter for secrecy at rest.
+- **Biometric web fallback now uses real AES-GCM** with a non-extractable IndexedDB key, replacing base64 encoding (existing base64 values remain decodable for compatibility).
+- **`client_secret` deprecated for browser use.** Browser-facing `clientSecret`/`appSecret` fields are no longer read in browser token/refresh/revoke calls (a secret in the JS bundle is recoverable) and emit a one-time warning when supplied in a web context. Fields kept for backward compatibility.
+- **`AuthError.details` is sanitized** — token/password keys are redacted and only JSON-safe primitives are retained.
+- CSPRNG (`crypto.randomUUID` / `crypto.getRandomValues`) used for UID fallbacks; developer-supplied credential endpoints warn if non-HTTPS.
+
+### Fixes
+
+- **Primary `auth` API was broken at runtime for OAuth and credential providers** — the provider registry constructed `BaseAuthProvider` subclasses with raw options instead of a `BaseProviderConfig`, so storage/logger/options were `undefined`. The registry now builds a proper config and injects shared storage + logger. This repaired path is what the React/Vue/Angular adapters use.
+- **Credential threading** — `auth.signIn({ provider, credentials })` now reaches credential providers correctly (credentials spread to where each provider reads them).
+- **Provider name resolution** — underscore enum values (`username_password`, `email_code`, `phone_password`, `email_magic_link`) now resolve to the correct registry loaders; added missing loaders for `email-code` and `phone-password`.
+- **Session restore** now runs after `configure()` supplies providers, so a persisted session is rehydrated on reload (previously the auto-init-in-constructor left it dead).
+- **GitHub sign-in completes** via a developer-supplied `tokenExchangeProxy` (alias `tokenEndpoint`); the per-init `message` listener and popup interval no longer leak. Without a proxy, sign-in throws `auth/missing-config`.
+- **Slack and LinkedIn fetch real user profiles** (Slack `openid.connect.userInfo`, LinkedIn `/v2/userinfo`) instead of returning hardcoded placeholder identities.
+- **Firebase sign-in method** is derived from standard options/credentials, with a new `defaultMethod` fallback (previously branched on an undocumented field the manager never sent).
+- **Microsoft** per-sign-in `scopes`/`loginHint`/`prompt` are mapped explicitly into the MSAL request.
+- **Passwordless pending state** (SMS / email-code / magic-link) is persisted (non-secret metadata only) so verification survives reload/redirect.
+- Auto-refresh timer no longer overflows the 32-bit `setTimeout` ceiling for far-future expiry; an untargeted `signOut` clears all refresh timers; `refreshToken` token access is null-guarded.
+- `web.ts` `getIdToken` no longer double-parses already-parsed storage; `getCurrentUser` isolates per-provider failures and sets the current provider; Apple `refreshToken` returns `auth/operation-not-allowed`; SMS/email-code `refreshToken` return `auth/operation-not-allowed`.
+- In-memory `persistence: 'memory'` now correctly maps to in-memory storage (previously fell through to `localStorage`).
+
+### Features
+
+- **Account-management methods on the `auth` singleton** (and surfaced through the React/Vue/Angular adapters): `linkAccount`, `unlinkAccount`, `revokeAccess`, `getIdToken`, `updateProfile`, `deleteAccount`. Each delegates to the active provider and throws `auth/operation-not-allowed` if unsupported.
+- New `isProviderConfigured(name)` and `getConfiguredProviders()` accessors on the singleton (also used by the adapters instead of reaching into private state).
+- New config field `GitHubAuthOptions.tokenExchangeProxy` (alias `tokenEndpoint`) and `FirebaseAuthOptions.defaultMethod`.
+- New exports: `WebStorage`, `CapacitorPreferencesStorage`, `StorageInterface`, and the shared `defaultLogger` (plus `Logger`, `LogLevel`, `LoggerConfig`).
+
+### Internal
+
+- **Centralized logging.** All package logging routes through a `Logger`; zero direct `console.*` calls remain outside the logger module. Default level `warn`; adjustable via `VITE_LOG_LEVEL` / `LOG_LEVEL` (build-time) or `defaultLogger.setLevel()` (runtime). The logger deliberately does not patch the host's global `console` or read the host's `localStorage` (documented deviations appropriate for a published library).
+- All standalone providers throw `AuthErrorCode` enum members instead of bare string codes; added additive enum members (e.g. `CREDENTIALS_REQUIRED`, `INVALID_CODE`, `CODE_EXPIRED`, `INVALID_TOKEN`, `STORAGE_ERROR`, `PROVIDER_UNSUPPORTED_OPERATION`).
+- Typing: replaced `any` in exported public types with concrete types. One acknowledged widening to a precise type — `AuthManagerConfig.providers` is now `Record<string, ProviderOptions>` instead of `any`. Reduced SDK-boundary `any` (minimal interface shapes for Firebase/MSAL/Facebook/GitHub) and internal mapper typing (lint `no-explicit-any` warnings 138 → 45).
+- Extracted provider manifest data into `provider-manifests.ts` (registry file 752 → 281 lines).
+- tsconfig `moduleResolution` `node10` → `bundler`, `module` `ES2020` → `ESNext`, added `rootDir`; ESLint consolidated onto unified `typescript-eslint` (dropped the banned `@eslint/js`).
+
+### Verification
+
+- `npm run build` succeeds; `npm run test:run` — 79 tests pass; `npm run lint` — 0 errors.
+
+## Earlier releases
+
+`0.0.1`, `0.0.2`, `1.0.0`, `1.1.0` and `2.1.0` were published before this changelog was started, and no
+per-version record of them was kept. They are listed here so the gap is visible rather than silent; the
+published artefacts remain on
+[npm](https://www.npmjs.com/package/capacitor-auth-manager?activeTab=versions). Treat `2.2.0` as the first
+release with a documented history.
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/faq -->
+
+---
+id: faq
+title: FAQ
+sidebar_label: FAQ
+description: Common questions about capacitor-auth-manager — Capacitor requirement, backends, security, framework support, and provider parity.
+---
+
+# Frequently asked questions
+
+## Which providers are available right now?
+
+Only **Google** (as of 3.x). It works on web, iOS, and Android. The package is being brought to production one provider at a time; the other 14 providers' code is in the repo but un-registered, so calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. See the [provider overview](/providers/overview).
+
+## How is this different from `@codetrix-studio/capacitor-google-auth`?
+
+It does the same job — native Google sign-in returning an id token you hand to Firebase — but it's Firebase-agnostic (no `firebase` dependency pulled in), uses the modern Android **Credential Manager** and **GoogleSignIn** SDKs, keeps the **same `signIn` call on web, iOS, and Android**, and is yours to maintain. The id token moves from `result.authentication.idToken` to `result.credential.idToken`. See the [migration guide](/providers/google#migrating-from-codetrix-studiocapacitor-google-auth).
+
+## Do I need Capacitor to use this?
+
+No. `capacitor-auth-manager` runs in any web app — Google sign-in there uses Google Identity Services. Capacitor is optional; you add `@capacitor/core` and run `npx cap sync` only when you ship an iOS or Android build.
+
+## Does it verify ID tokens for me?
+
+No. The library validates an OIDC `nonce` and the ID token's `exp` claim, but it does **not** verify the token's signature in the browser. Re-validate any ID token against the provider's JWKS on your server before trusting its claims. This is a deliberate, honest limitation — client-side signature verification gives a false sense of security.
+
+## Does Google sign-in need a backend?
+
+No. Both Google Identity Services web flows require no client secret: One-Tap returns an ID token and popup returns an access token. On iOS (GoogleSignIn) and Android (Credential Manager) the native SDK handles it. You only involve a server if you opt into a `serverAuthCode` (iOS) and exchange it for refresh tokens — and that exchange must happen on your server, never in the app/browser.
+
+## Do I need a context provider or wrapper component?
+
+No. The core `auth` singleton works like a store — import it and call it anywhere. The React and Vue adapters expose hooks/composables that subscribe to the singleton with no surrounding provider. Angular uses `AuthModule.forRoot({ providers })`.
+
+## Is it tree-shakeable?
+
+Yes. The package sets `sideEffects: false` and loads each provider dynamically, so a bundle only includes the providers you actually call. Framework adapters are separate entry points, so a React build does not pull in Vue and vice versa.
+
+## How are tokens stored?
+
+By default on web, in `localStorage`, which any XSS or third-party script on the origin can read. On native, inject `CapacitorPreferencesStorage` (needs the optional `@capacitor/preferences` peer) for native profile/session metadata. Token strings are not written through these storage adapters. Android credentials stay in memory; iOS relies on the Google SDK Keychain. For secrecy at rest, supply a Keychain/Keystore-backed `StorageInterface`. See [storage](/api/storage).
+
+## Does Google sign-in work the same on web, iOS, and Android?
+
+Yes — that's the point. The same `auth.signIn(AuthProvider.GOOGLE)` call dispatches to Google Identity Services (web), GoogleSignIn (iOS), or GoogleSignIn with a Credential Manager fallback (Android), and returns an ID token on native/One-Tap or an access token on web popup. Firebase handoff must use both credential fields. Native consumer builds run in package CI — validate a new version on a real device before rolling it out widely.
+
+## What happens when Google One-Tap does not show up?
+
+With the default `webFlow: 'auto'` the package falls back to Google's OAuth2 popup, which works from any click
+handler and returns an `accessToken` instead of an `idToken`. Firebase accepts both:
+`GoogleAuthProvider.credential(idToken ?? null, accessToken)`. Use `webFlow: 'popup'` to skip One-Tap entirely.
+
+## Can I import the package in Node, SSR or a test runner?
+
+Yes, since 3.0.0. Importing is side-effect free (the `auth` singleton is created on first use) and every
+published relative import carries its `.js` extension, so bare Node ESM and CJS both resolve. Signing in
+still needs a browser or a device.
+
+## Which frameworks are supported?
+
+React (`16.8`–`19`), Vue (`^3`), Angular (through `^21`), and vanilla JavaScript. Each has a dedicated entry point. See the [framework guides](/frameworks/react).
+
+## How do I change log verbosity?
+
+The shared logger defaults to `warn`. Set `logLevel` in `auth.configure()`, the build-time `VITE_LOG_LEVEL` / `LOG_LEVEL` env var, or call `defaultLogger.setLevel('debug')` at runtime.
+
+## Where do I report a security issue?
+
+Email aoneahsan@gmail.com — see the [security policy](/.well-known/security.txt). Auth is sensitive; reports are prioritized.
+
+## Related
+
+- [Provider overview](/providers/overview)
+- [API reference](/api/auth-singleton)
+- [Configuration](/getting-started/configuration)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/angular -->
+
+---
+id: angular
+title: Angular service
+sidebar_label: Angular
+description: Use capacitor-auth-manager in Angular with AuthService, AuthModule.forRoot, and the AuthGuard / NoAuthGuard route guards — RxJS observables over the auth singleton.
+---
+
+# Angular service
+
+The Angular adapter wraps the shared `auth` singleton in an injectable `AuthService` that exposes auth state as RxJS observables, plus an `AuthModule` for configuration and route guards. Import everything from the `/angular` entry point.
+
+```typescript
+import { AuthService, AuthModule, AuthGuard } from 'capacitor-auth-manager/angular';
+```
+
+`AuthService` is `providedIn: 'root'`, so it is available without `AuthModule`. Use `AuthModule.forRoot(...)` when you want to pass provider configuration at bootstrap.
+
+:::info Google-first (3.x)
+Google is the only enabled provider; `signIn` with another id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The adapter re-exports the `AuthProvider` enum (recommended); the string `'google'` also works.
+:::
+
+## Module setup
+
+```typescript
+import { AuthModule } from 'capacitor-auth-manager/angular';
+
+@NgModule({
+  imports: [
+    AuthModule.forRoot({
+      providers: {
+        google: { clientId: 'YOUR_GOOGLE_CLIENT_ID' },
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+`AuthModule.forRoot(config?)` forwards the config (an `AuthModuleConfig`) to `auth.configure()` via the `AUTH_CONFIG` injection token.
+
+## Component example
+
+```typescript
+import { Component } from '@angular/core';
+import { AuthService } from 'capacitor-auth-manager/angular';
+
+@Component({
+  selector: 'app-login',
+  template: `
+    <div *ngIf="authService.isLoading$ | async">Loading...</div>
+    <div *ngIf="authService.user$ | async as user">
+      <p>Welcome, {{ user.displayName }}!</p>
+      <button (click)="signOut()">Sign Out</button>
+    </div>
+    <button
+      *ngIf="!(authService.isAuthenticated$ | async)"
+      (click)="signIn('google')"
+    >
+      Sign In with Google
+    </button>
+  `,
+})
+export class LoginComponent {
+  constructor(public authService: AuthService) {}
+
+  signIn(provider: string) {
+    this.authService.signIn(provider).subscribe();
+  }
+
+  signOut() {
+    this.authService.signOut().subscribe();
+  }
+}
+```
+
+The `signIn`/`signOut` methods return cold observables — nothing runs until you `subscribe()`.
+
+## `AuthService` observables
+
+| Observable | Emits |
+| --- | --- |
+| `state$` | The full `AuthState` |
+| `user$` | `AuthUser \| null` |
+| `isAuthenticated$` | `boolean` |
+| `isLoading$` | `boolean` |
+| `provider$` | `string \| null` |
+
+## `AuthService` methods
+
+Async operations return observables; synchronous getters return values directly.
+
+| Method | Returns |
+| --- | --- |
+| `configure(config: AuthManagerConfig)` | `void` |
+| `initialize(config?)` | `Observable<void>` |
+| `signIn(providerOrOptions)` | `Observable<AuthResult>` |
+| `signOut(options?)` | `Observable<void>` |
+| `refreshToken(provider?)` | `Observable<AuthResult>` |
+| `linkAccount(options)` | `Observable<AuthResult>` |
+| `unlinkAccount(options)` | `Observable<void>` |
+| `revokeAccess(token?, provider?)` | `Observable<void>` |
+| `getIdToken(options?)` | `Observable<string>` |
+| `updateProfile(options)` | `Observable<AuthUser>` |
+| `deleteAccount(options?)` | `Observable<void>` |
+| `getCurrentUser()` | `AuthUser \| null` |
+| `getAuthState()` | `AuthState` |
+| `isAuthenticated()` | `boolean` |
+| `getCurrentProvider()` | `string \| null` |
+| `getAvailableProviders()` | `Observable<string[]>` |
+| `getSupportedProviders()` | `Observable<string[]>` |
+| `isProviderSupported(provider)` | `Observable<boolean>` |
+
+## Other exports
+
+- `AuthProviderService` — per-provider service with `isSupported$` / `isConfigured$` observables and scoped `signIn(options?)` / `signOut(options?)`. Created via the factory below.
+- `AuthProviderFactory` — `providedIn: 'root'` factory; `create(provider)` returns an `AuthProviderService` for that provider id.
+- `AuthModule`, `AuthModuleConfig`, `AUTH_CONFIG` — module, its config interface, and the DI token carrying the `forRoot` config.
+- `AuthGuard` — route guard implementing `CanActivate`, `CanActivateChild`, and `CanLoad`; redirects unauthenticated users to `/login` with a `returnUrl` query param.
+- `NoAuthGuard` — inverse guard; redirects already-authenticated users to `/`.
+
+```typescript
+import { AuthGuard } from 'capacitor-auth-manager/angular';
+
+const routes: Routes = [
+  { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
+];
+```
+
+## Account management
+
+`AuthService` surfaces the same account-management operations as the singleton — `linkAccount`, `unlinkAccount`, `revokeAccess`, `getIdToken`, `updateProfile`, and `deleteAccount` — each as an observable that delegates to the active provider and errors with `AuthErrorCode.OPERATION_NOT_ALLOWED` when unsupported.
+
+## Related
+
+- [Quick start](/getting-started/quick-start)
+- [The auth singleton](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/react -->
+
+---
+id: react
+title: React hooks
+sidebar_label: React
+description: Use capacitor-auth-manager in React with the useAuth, useAuthState, useAuthProvider, useUser, and useIsAuthenticated hooks — no context provider required.
+---
+
+# React hooks
+
+The React adapter exposes hooks that subscribe to the shared `auth` singleton and re-render your components on auth state changes. Import them from the `/react` entry point.
+
+```tsx
+import { useAuth } from 'capacitor-auth-manager/react';
+```
+
+## No context provider needed
+
+There is nothing to wrap your app in. The hooks read from the global `auth` singleton (the design works like Zustand), so you can call them in any component without an `<AuthProvider>` ancestor. Configure providers once at startup with `auth.configure(...)`.
+
+For Firebase-backed apps, use Firebase’s `onAuthStateChanged` for application session state and hand off Google credentials explicitly. See the [React/Firebase integration guide](/integration/ai). These hooks reflect the package’s Google session.
+
+## Usage example
+
+```tsx
+import { useAuth, AuthProvider } from 'capacitor-auth-manager/react';
+
+function LoginButton() {
+  const { user, signIn, signOut, isLoading, error } = useAuth();
+
+  if (isLoading) return <div>Loading...</div>;
+
+  if (user) {
+    return (
+      <div>
+        <p>Welcome, {user.displayName}!</p>
+        <button onClick={() => signOut()}>Sign Out</button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <button onClick={() => signIn(AuthProvider.GOOGLE)}>Sign In with Google</button>
+      {error && <p role="alert">{error.message}</p>}
+    </div>
+  );
+}
+```
+
+:::info Google-first (3.x)
+Google is the only enabled provider; `signIn` with another id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The adapter re-exports `AuthProvider` (recommended); the string `'google'` also works.
+:::
+
+## Hooks
+
+| Hook | Purpose | Returns |
+| --- | --- | --- |
+| `useAuth()` | Full auth state plus every action (sign in/out, token, account management) | `UseAuthReturn` |
+| `useAuthState()` | Read-only auth state, no action methods | `UseAuthStateReturn` |
+| `useAuthProvider(provider)` | Per-provider support/config flags plus scoped `signIn`/`signOut` | `UseAuthProviderReturn` |
+| `useUser()` | Just the current user (derived from `useAuthState`) | `AuthUser \| null` |
+| `useIsAuthenticated()` | Just the boolean auth status (derived from `useAuthState`) | `boolean` |
+
+### `UseAuthReturn`
+
+```typescript
+interface UseAuthReturn {
+  user: AuthUser | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  provider: string | null;
+  signIn: (providerOrOptions: string | SignInOptions) => Promise<AuthResult>;
+  signOut: (options?: SignOutOptions) => Promise<void>;
+  refreshToken: (provider?: string) => Promise<AuthResult>;
+  linkAccount: (options: LinkAccountOptions) => Promise<AuthResult>;
+  unlinkAccount: (options: UnlinkAccountOptions) => Promise<void>;
+  revokeAccess: (token?: string, provider?: string) => Promise<void>;
+  getIdToken: (options?: GetIdTokenOptions) => Promise<string>;
+  updateProfile: (options: UpdateProfileOptions) => Promise<AuthUser>;
+  deleteAccount: (options?: DeleteAccountOptions) => Promise<void>;
+  error: Error | null;
+}
+```
+
+The action methods set the hook's `error` state on failure and re-throw, so you can either read `error` or use a local `try/catch`.
+
+### `UseAuthStateReturn`
+
+```typescript
+interface UseAuthStateReturn {
+  user: AuthUser | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  provider: string | null;
+}
+```
+
+### `UseAuthProviderReturn`
+
+```typescript
+interface UseAuthProviderReturn {
+  isSupported: boolean;
+  isConfigured: boolean;
+  signIn: () => Promise<AuthResult>;
+  signOut: (options?: SignOutOptions) => Promise<void>;
+  error: Error | null;
+}
+```
+
+`useAuthProvider('google')` is useful for gating a provider-specific button:
+
+```tsx
+function GoogleButton() {
+  const { signIn, isSupported, isConfigured } = useAuthProvider('google');
+  if (!isSupported || !isConfigured) return null;
+  return <button onClick={() => signIn()}>Sign In with Google</button>;
+}
+```
+
+## Account management
+
+`useAuth()` surfaces the same account-management methods as the singleton: `linkAccount`, `unlinkAccount`, `revokeAccess`, `getIdToken`, `updateProfile`, and `deleteAccount`. Each delegates to the active provider and throws `AuthErrorCode.OPERATION_NOT_ALLOWED` when that provider does not implement the operation.
+
+## Related
+
+- [Quick start](/getting-started/quick-start)
+- [The auth singleton](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/vanilla-js -->
+
+---
+id: vanilla-js
+title: Vanilla JavaScript
+sidebar_label: Vanilla JS
+description: Use the capacitor-auth-manager auth singleton in plain JavaScript or TypeScript with no framework — configure providers, sign in, and subscribe to auth state changes.
+---
+
+# Vanilla JavaScript
+
+The `auth` singleton is the framework-agnostic entry point to capacitor-auth-manager. Import it from the package root and call its methods directly — there is no provider, context, or wrapper to set up. The React, Vue, and Angular adapters are thin layers over this same singleton.
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+```
+
+The singleton auto-initializes the first time it is used in a browser, so you can call `auth.configure(...)` and `auth.signIn(...)` without any explicit bootstrap.
+
+## Usage example
+
+```typescript
+import { auth, AuthProvider } from 'capacitor-auth-manager';
+
+// 1. Configure Google (the enabled provider in 3.x; other ids throw PROVIDER_NOT_ENABLED)
+auth.configure({
+  providers: {
+    [AuthProvider.GOOGLE]: {
+      clientId: 'YOUR_WEB_OAUTH_CLIENT_ID',
+      serverClientId: 'YOUR_WEB_OAUTH_CLIENT_ID', // required on Android for an idToken
+    },
+  },
+});
+
+// 2. Subscribe to auth state changes. The listener is called immediately
+//    with the current state, then again on every change. The returned
+//    function unsubscribes.
+const unsubscribe = auth.onAuthStateChange((state) => {
+  const button = document.querySelector('#login-button');
+  if (!button) return;
+  button.textContent = state.isAuthenticated
+    ? `Sign out (${state.user?.displayName ?? ''})`
+    : 'Sign in with Google';
+});
+
+// 3. Wire a button to sign in / sign out
+document.querySelector('#login-button')?.addEventListener('click', async () => {
+  try {
+    if (auth.isAuthenticated()) {
+      await auth.signOut();
+    } else {
+      const result = await auth.signIn(AuthProvider.GOOGLE);
+      console.log('Signed in:', result.user.email);
+      // Hand result.credential.idToken to Firebase via signInWithCredential.
+    }
+  } catch (error) {
+    console.error('Auth failed:', error);
+  }
+});
+
+// Later, when tearing down:
+unsubscribe();
+```
+
+## Auth state shape
+
+`auth.getAuthState()` returns, and `onAuthStateChange` emits, an `AuthState` object:
+
+```typescript
+interface AuthState {
+  user: AuthUser | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  provider: string | null;
+}
+```
+
+`AuthState` carries no raw tokens. Read an ID token with `auth.getIdToken()` and refresh with `auth.refreshToken()`.
+
+## Core singleton members
+
+| Member | Purpose | Returns |
+| --- | --- | --- |
+| `configure(config)` | Set providers and global options | `void` |
+| `initialize(config?)` | Restore persisted session; usually automatic | `Promise<void>` |
+| `signIn(providerOrOptions)` | Sign in by provider id string or `SignInOptions` | `Promise<AuthResult>` |
+| `signOut(options?)` | Sign out of the active or named provider | `Promise<void>` |
+| `refreshToken(provider?)` | Refresh the active or named provider's token | `Promise<AuthResult>` |
+| `getAuthState()` | Current `AuthState` snapshot | `AuthState` |
+| `getCurrentUser()` | Current user, synchronously | `AuthUser \| null` |
+| `isAuthenticated()` | Current auth status, synchronously | `boolean` |
+| `getCurrentProvider()` | Active provider id, synchronously | `string \| null` |
+| `onAuthStateChange(listener)` | Subscribe to state changes (fires immediately) | `() => void` (unsubscribe) |
+| `getAvailableProviders()` | All registered provider ids | `Promise<string[]>` |
+| `getSupportedProviders()` | Providers supported on this platform | `Promise<string[]>` |
+| `isProviderSupported(provider)` | Whether a provider is supported here | `Promise<boolean>` |
+| `isProviderConfigured(name)` | Whether a provider was passed to `configure()` | `boolean` |
+| `getConfiguredProviders()` | Names of configured providers | `string[]` |
+
+## Account management
+
+The singleton also exposes account-management methods that delegate to the active provider. An unsupported provider throws `AuthErrorCode.OPERATION_NOT_ALLOWED`:
+
+- `linkAccount(options)` → `Promise<AuthResult>`
+- `unlinkAccount(options)` → `Promise<void>`
+- `revokeAccess(token?, provider?)` → `Promise<void>`
+- `getIdToken(options?)` → `Promise<string>`
+- `updateProfile(options)` → `Promise<AuthUser>`
+- `deleteAccount(options?)` → `Promise<void>`
+
+## Related
+
+- [Quick start](/getting-started/quick-start)
+- [The auth singleton](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/vue -->
+
+---
+id: vue
+title: Vue 3 composables
+sidebar_label: Vue
+description: Use capacitor-auth-manager in Vue 3 with the useAuth, useAuthState, useUser, useAuthProvider, and useAuthConfig composables — reactive refs, no plugin to install.
+---
+
+# Vue 3 composables
+
+The Vue adapter exposes Composition API composables that wrap the shared `auth` singleton and expose its state as reactive refs. Import them from the `/vue` entry point.
+
+```typescript
+import { useAuth } from 'capacitor-auth-manager/vue';
+```
+
+## No plugin or provider needed
+
+There is nothing to register with `app.use(...)`. The composables read from the global `auth` singleton, so any component can call them directly. Each composable subscribes on setup and unsubscribes automatically in `onUnmounted`.
+
+## Usage example
+
+```vue
+<script setup lang="ts">
+import { useAuth, AuthProvider } from 'capacitor-auth-manager/vue';
+
+const { user, signIn, signOut, isLoading, error } = useAuth();
+
+async function handleGoogleSignIn() {
+  try {
+    await signIn(AuthProvider.GOOGLE);
+  } catch {
+    // error is also exposed via the returned `error` ref
+  }
+}
+</script>
+
+<template>
+  <div v-if="isLoading">Loading...</div>
+  <div v-else-if="user">
+    <p>Welcome, {{ user.displayName }}!</p>
+    <button @click="signOut()">Sign Out</button>
+  </div>
+  <div v-else>
+    <button @click="handleGoogleSignIn">Sign In with Google</button>
+    <p v-if="error" role="alert">{{ error.message }}</p>
+  </div>
+</template>
+```
+
+The state values (`user`, `isLoading`, `isAuthenticated`, `provider`, `error`) are reactive refs — in `<template>` they unwrap automatically; in `<script>` read them via `.value`.
+
+:::info Google-first (3.x)
+Google is the only enabled provider; `signIn` with another id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The adapter re-exports `AuthProvider` (recommended); the string `'google'` also works.
+:::
+
+## Composables
+
+| Composable | Purpose | Returns |
+| --- | --- | --- |
+| `useAuth()` | Full reactive state plus every action method | `UseAuthReturn` |
+| `useAuthState()` | Read-only reactive state, no methods | `UseAuthStateReturn` |
+| `useUser()` | Just the current user, as a computed ref | `ComputedRef<AuthUser \| null>` |
+| `useAuthProvider(provider)` | Per-provider support/config refs plus scoped `signIn`/`signOut` | `UseAuthProviderReturn` |
+| `useAuthConfig()` | Configure and initialize the manager | `{ configure, isInitialized, error }` |
+
+### `useAuth()` returns
+
+Readonly refs `user`, `isLoading`, `isAuthenticated`, `provider`, and `error` (`Readonly<Ref<...>>`), plus the action methods:
+
+- `signIn(providerOrOptions: string | SignInOptions)` → `Promise<AuthResult>`
+- `signOut(options?: SignOutOptions)` → `Promise<void>`
+- `refreshToken(provider?: string)` → `Promise<AuthResult>`
+- `linkAccount(options: LinkAccountOptions)` → `Promise<AuthResult>`
+- `unlinkAccount(options: UnlinkAccountOptions)` → `Promise<void>`
+- `revokeAccess(token?: string, provider?: string)` → `Promise<void>`
+- `getIdToken(options?: GetIdTokenOptions)` → `Promise<string>`
+- `updateProfile(options: UpdateProfileOptions)` → `Promise<AuthUser>`
+- `deleteAccount(options?: DeleteAccountOptions)` → `Promise<void>`
+
+### `useAuthProvider(provider)` returns
+
+`isSupported` and `isConfigured` (readonly refs), a no-argument `signIn()` → `Promise<AuthResult>`, `signOut(options?)` → `Promise<void>`, and an `error` ref.
+
+### `useAuthConfig()` returns
+
+`configure(config: AuthManagerConfig)` (calls `auth.configure()` then `auth.initialize()`), an `isInitialized` readonly ref, and an `error` ref:
+
+```vue
+<script setup lang="ts">
+import { useAuthConfig } from 'capacitor-auth-manager/vue';
+
+const { configure } = useAuthConfig();
+configure({ providers: { google: { clientId: 'YOUR_CLIENT_ID' } } });
+</script>
+```
+
+## Account management
+
+`useAuth()` surfaces the same account-management methods as the singleton: `linkAccount`, `unlinkAccount`, `revokeAccess`, `getIdToken`, `updateProfile`, and `deleteAccount`. Each delegates to the active provider and throws `AuthErrorCode.OPERATION_NOT_ALLOWED` when the provider does not implement it.
+
+## Related
+
+- [Quick start](/getting-started/quick-start)
+- [The auth singleton](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/configuration -->
+
+---
+id: configuration
+title: Configuration
+sidebar_label: Configuration
+description: The full auth.configure() shape for capacitor-auth-manager — providers, persistence, token refresh, logging, and pluggable secure storage.
+---
+
+# Configuration
+
+`auth.configure()` (and `auth.initialize()`) accept one `AuthManagerConfig` object. Every field is optional; you typically set `providers` plus a couple of globals. Calling `configure` more than once merges into the existing config, so you can register providers incrementally.
+
+:::info Google-first (3.x)
+Only Google is enabled today, so the `providers` map below configures Google. Adding another provider id does not make it work yet — `auth.signIn()` with a non-Google id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. Use the [`AuthProvider` enum](/api/types#authprovider) (recommended); the string `'google'` also works.
+:::
+
+```typescript
+import { auth, AuthProvider } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    [AuthProvider.GOOGLE]: {
+      clientId: 'YOUR_WEB_OAUTH_CLIENT_ID',        // web + Android serverClientId fallback
+      serverClientId: 'YOUR_WEB_OAUTH_CLIENT_ID',  // REQUIRED on Android for an idToken
+      iosClientId: 'YOUR_IOS_OAUTH_CLIENT_ID',     // iOS (or GIDClientID in Info.plist)
+      scopes: ['email', 'profile'],
+    },
+  },
+  persistence: 'local',
+  autoRefreshToken: true,
+  tokenRefreshBuffer: 300000,
+  enableLogging: true,
+  logLevel: 'warn',
+});
+```
+
+## AuthManagerConfig
+
+| Field | Type | Default | Purpose |
+| --- | --- | --- | --- |
+| `providers` | `Record<string, ProviderOptions>` | — | Map of provider id → that provider's typed options. The key is the id you later pass to `signIn`. |
+| `persistence` | `'local' \| 'session' \| 'memory'` | `'local'` | Where the session is stored on web. `'memory'` keeps it in memory only (cleared on reload). |
+| `autoRefreshToken` | `boolean` | `false` | When a credential carries a refresh token and expiry, schedule a refresh before it expires. |
+| `tokenRefreshBuffer` | `number` (ms) | `300000` (5 min) | How long before expiry to refresh. The scheduler clamps long delays to the 32-bit `setTimeout` ceiling. |
+| `enableLogging` | `boolean` | `false` | Turn the internal logger on. |
+| `logLevel` | `'debug' \| 'info' \| 'warn' \| 'error'` | `'info'` | Verbosity once logging is enabled. The shared logger also reads `VITE_LOG_LEVEL` / `LOG_LEVEL` at build time. |
+| `storage` | `StorageInterface` | `WebStorage` (localStorage) | A custom storage backend. See below. |
+
+## Persistence
+
+Tokens are not written through these storage adapters. `'local'` uses `localStorage` (survives reload and tab close), `'session'` uses `sessionStorage` (cleared when the tab closes), and `'memory'` keeps state in memory only. Changing persistence at runtime recreates the storage backend; a no-op re-`configure` does not discard in-memory state.
+
+## Secure storage
+
+The default web storage is `localStorage`, which any XSS or third-party script on the origin can read. On native, inject a secure backend to store profile/session metadata outside the webview:
+
+```typescript
+import { auth, CapacitorPreferencesStorage } from 'capacitor-auth-manager';
+
+auth.configure({
+  storage: new CapacitorPreferencesStorage(), // requires the optional @capacitor/preferences peer
+  providers: { google: { clientId: 'YOUR_CLIENT_ID' } },
+});
+```
+
+Capacitor Preferences is not hardware-encrypted. For secrecy at rest, supply your own Keychain/Keystore-backed `StorageInterface`. See the [storage reference](/api/storage).
+
+## Per-provider options
+
+Each provider id under `providers` takes its own typed options interface. Today that means `GoogleAuthOptions` (`clientId`, `serverClientId`, `iosClientId`, `scopes`, `hostedDomain`, `loginHint`, `filterByAuthorizedAccounts`, `autoSelectEnabled`, `nonce`) — see the [Google provider page](/providers/google) for the full table. The other providers' option interfaces exist in the types but their providers are not enabled yet.
+
+## Related
+
+- [Provider overview](/providers/overview)
+- [API reference — the auth singleton](/api/auth-singleton)
+- [Types reference](/api/types)
+- [Storage reference](/api/storage)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/installation -->
+
+---
+id: installation
+title: Installation
+sidebar_label: Installation
+description: Install capacitor-auth-manager with npm or yarn, plus its optional peer dependencies for Capacitor, React, Vue, and Angular.
+---
+
+# Installation
+
+Install the package from npm. It has one runtime dependency (`tslib`); everything framework- or Capacitor-specific is an **optional** peer that you add only when you use it.
+
+```bash
+npm install capacitor-auth-manager
+# then, for the native (iOS/Android) plugin:
+npx cap sync
+```
+
+```bash
+# or with yarn
+yarn add capacitor-auth-manager
+npx cap sync
+```
+
+:::info Google-first (3.x)
+Google is the only enabled provider right now. The package installs the same way regardless, but `auth.signIn()` only completes for `AuthProvider.GOOGLE`; other ids throw `AuthErrorCode.PROVIDER_NOT_ENABLED`. See the [Google provider](/providers/google) and [provider overview](/providers/overview).
+:::
+
+## Peer dependencies
+
+`@capacitor/core` is a **required** peer since 3.0.0 — the native bridge imports Capacitor core even
+in a web-only build. Everything else is optional; add only what your app uses.
+
+| Peer | Required? | When you need it | Supported range |
+| --- | --- | --- | --- |
+| `@capacitor/core` | **yes** | always (native bridge runtime dependency) | `^7.4.2` or `^8` |
+| `@capacitor/preferences` | optional | only if you inject `CapacitorPreferencesStorage` for native metadata storage | `^6`, `^7`, or `^8` |
+| `react` | optional | the React adapter (`capacitor-auth-manager/react`) | `16.8`–`19` |
+| `vue` | optional | the Vue adapter (`capacitor-auth-manager/vue`) | `^3` |
+| `@angular/core`, `@angular/common`, `@angular/router` | optional | the Angular adapter (`capacitor-auth-manager/angular`) | `^22` |
+| `rxjs` | optional | Angular adapter observables | `^7` |
+
+Nothing is installed for disabled providers: the former `capacitor-biometric-authentication` optional
+dependency was removed in 3.0.0 and returns as an optional peer when the biometric provider is re-enabled.
+
+**Node:** `>=24.0.0` for installing and building. The package itself runs in a browser or a webview; since
+3.0.0 importing it under bare Node (ESM or CJS, SSR, test runners) is side-effect free and resolves cleanly.
+
+## Entry points
+
+The package ships six entry points so a React build never pulls in Vue, and vice versa:
+
+```typescript
+import { auth } from 'capacitor-auth-manager';            // core singleton + types
+import { useAuth } from 'capacitor-auth-manager/react';    // React hooks
+import { useAuth } from 'capacitor-auth-manager/vue';      // Vue composables
+import { AuthService } from 'capacitor-auth-manager/angular'; // Angular service/module/guard
+import { auth } from 'capacitor-auth-manager/core';        // core only
+import { GoogleProvider } from 'capacitor-auth-manager/providers/web'; // direct provider access
+```
+
+The library is distributed as ESM with CommonJS builds for backward compatibility, full TypeScript types, and `sideEffects: false` for tree-shaking.
+
+## Native (Capacitor) projects
+
+`@capacitor/core` is a required peer even for web-only consumers; native Android/iOS platform packages are optional. If you ship a mobile build, install `@capacitor/core`, run `npx cap sync`, and configure the native Google setup. See [Android](/platforms/android) (SHA-1/256 fingerprints, `serverClientId`, a Google account on the device) and [iOS](/platforms/ios) (`GIDClientID` + the reversed-client-id URL scheme) for the platform notes. The native Google path uses Android Credential Manager and the GoogleSignIn SDK.
+
+## Related
+
+- [Quick Start](/getting-started/quick-start)
+- [Configuration](/getting-started/configuration)
+- [Platform notes](/platforms/web)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/quick-start -->
+
+---
+id: quick-start
+title: Quick Start
+sidebar_label: Quick Start
+description: Configure Google and sign a user in with capacitor-auth-manager in about five minutes — the same call on web, iOS, and Android — then hand the credential to Firebase.
+---
+
+# Quick Start
+
+This walks from a fresh install to a signed-in Google user, then hands the credential to Firebase. The **same `signIn(AuthProvider.GOOGLE)` call works on web, iOS, and Android** — native dispatch picks the right Google SDK for you.
+
+:::info Google-first (3.x)
+Google is the only enabled provider right now. Any other provider id throws `AuthErrorCode.PROVIDER_NOT_ENABLED` until it is re-enabled. See the [provider overview](/providers/overview).
+:::
+
+## 1. Configure Google
+
+Configuration is a one-time call. Use the exported **`AuthProvider` enum** (recommended — typo-safe; the plain string `'google'` also works).
+
+```typescript
+import { auth, AuthProvider } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    [AuthProvider.GOOGLE]: {
+      clientId: 'YOUR_WEB_OAUTH_CLIENT_ID',        // web + Android serverClientId fallback
+      serverClientId: 'YOUR_WEB_OAUTH_CLIENT_ID',  // REQUIRED on Android to receive an idToken
+      iosClientId: 'YOUR_IOS_OAUTH_CLIENT_ID',     // iOS (or set GIDClientID in Info.plist)
+    },
+  },
+  persistence: 'local',
+});
+```
+
+`serverClientId` is the **Web** OAuth client id; Android's Google sign-in needs it to return an id token. See the [Google provider page](/providers/google) for the full native setup (SHA-1/256 on Android, the reversed-client-id URL scheme on iOS).
+
+## 2. Sign in
+
+The same call runs on every platform and resolves to an `AuthResult`. Native and One-Tap flows return an ID token; the web popup flow returns an access token.
+
+```typescript
+const result = await auth.signIn(AuthProvider.GOOGLE);
+const idToken = result.credential.idToken;     // present on native and web One-Tap; absent on web popup
+console.log('Welcome', result.user.displayName);
+```
+
+## 3. Hand the credential to Firebase (identical on every platform)
+
+The package is Firebase-agnostic — it does not bundle Firebase. You take the Google id token and call `signInWithCredential` yourself. This is the same code on web and native.
+
+```typescript
+import { getAuth, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+
+const result = await auth.signIn(AuthProvider.GOOGLE);
+await signInWithCredential(
+  getAuth(),
+  GoogleAuthProvider.credential(result.credential.idToken ?? null, result.credential.accessToken ?? null),
+);
+```
+
+## 4. React to auth state
+
+`onAuthStateChange` calls your listener immediately with the current state, then on every change. It returns an unsubscribe function. The state shape is `{ user, isLoading, isAuthenticated, provider }` — it carries no raw tokens.
+
+```typescript
+const unsubscribe = auth.onAuthStateChange((state) => {
+  if (state.isAuthenticated) {
+    console.log('Signed in as', state.user?.email, 'via', state.provider);
+  } else {
+    console.log('Signed out');
+  }
+});
+
+// later
+unsubscribe();
+```
+
+## 5. Sign out
+
+```typescript
+await auth.signOut();
+```
+
+## The same flow in React
+
+No context provider is needed — import the hook and use it. The hook subscribes to the singleton for you.
+
+```tsx
+import { useAuth, AuthProvider } from 'capacitor-auth-manager/react';
+
+function LoginButton() {
+  const { user, signIn, signOut, isLoading } = useAuth();
+
+  if (isLoading) return <span>Loading…</span>;
+  if (user) {
+    return (
+      <>
+        <span>Welcome, {user.displayName}</span>
+        <button onClick={() => signOut()}>Sign out</button>
+      </>
+    );
+  }
+  return <button onClick={() => signIn(AuthProvider.GOOGLE)}>Sign in with Google</button>;
+}
+```
+
+Call `auth.configure()` as early as possible in app startup (for example in your entry module) so the first render already has provider config.
+
+## Where to go next
+
+- [Google provider](/providers/google) — configuration options, native (Android/iOS) setup, and the per-platform token table.
+- [Configuration](/getting-started/configuration) — every option `auth.configure()` accepts.
+- [Migrating from `@codetrix-studio/capacitor-google-auth`](/providers/google#migrating-from-codetrix-studiocapacitor-google-auth).
+- Framework guides: [React](/frameworks/react) · [Vue](/frameworks/vue) · [Angular](/frameworks/angular) · [Vanilla JS](/frameworks/vanilla-js).
+- [API reference](/api/auth-singleton).
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/integration/ai -->
+
+---
+id: ai
+title: AI integration guide
+sidebar_label: AI integration
+description: Exact React and Firebase integration contract for capacitor-auth-manager 3.0.0 on web, Android, and iOS, including imports, tokens, sessions, errors, and acceptance checks.
+---
+
+# Capacitor Auth Manager: AI integration guide
+
+Release: **3.0.0**. Audience: Claude Code, Codex, and developers integrating Google sign-in.
+Use this guide from the installed package; the npm README and [documentation](https://capacitor-auth-manager-docs.aoneahsan.com) describe the same release.
+
+## 🧭 Table of Contents&nbsp;[#](#table-of-contents) {#table-of-contents}
+
+- [Contract](#contract)
+- [Setup](#setup)
+- [Firebase handoff](#firebase)
+- [Platform setup](#platform-setup)
+- [Tokens and state](#tokens-and-state)
+- [Errors and security](#errors-and-security)
+- [App acceptance checks](#acceptance)
+
+## 🔧 Contract&nbsp;[#](#contract) {#contract}
+
+| Decision | Contract |
+|---|---|
+| Enabled provider | `AuthProvider.GOOGLE` only; other recognized providers throw `PROVIDER_NOT_ENABLED` |
+| Application responsibility | Google OAuth registration, Firebase initialization, app sessions, authorization, translations |
+| Package responsibility | Platform dispatch, Google SDK invocation, normalized `{ user, credential }`, observable local state |
+| Firebase dependency | None; install Firebase in the app |
+| Node | ≥24 for installation/tooling; imports are server-safe, sign-in runs in a browser or native app |
+| Capacitor | `@capacitor/core` is required even on web; peers support 7.4.2 and 8.x |
+| Native floors | Android API 24; iOS 15; native builds require JDK 21 |
+| Upgrade from 2.4.x | Node floor rises, iOS floor rises, Angular peers are 22.x; web may return an access token instead of an ID token |
+
+Read the actual installed `.d.ts` declarations before inventing a method. Public imports are
+`capacitor-auth-manager`, `/core`, `/react`, `/vue`, `/angular`, `/providers/web`, and `/package.json`.
+The `/providers/web` entry exports `GoogleAuthProviderWeb`; construct it with Google options or an injected provider config.
+React exports `useAuth`, `useAuthState`, `useUser`, `useIsAuthenticated`, `useAuthProvider`.
+The root exports the `auth` singleton, `AuthProvider`, `AuthErrorCode`, `AuthError`, `isAuthError`, storage classes, logger, and shared types.
+
+## 📦 Setup&nbsp;[#](#setup) {#setup}
+
+```bash
+yarn add capacitor-auth-manager@3.0.0 @capacitor/core firebase
+# Native applications only, after the platform projects exist:
+yarn cap sync
+```
+
+Use the app's existing Capacitor CLI and keep its core, CLI, Android, and iOS versions aligned.
+Configure once in the browser application bootstrap, before rendering enabled sign-in controls.
+OAuth client IDs are public identifiers; client secrets never belong in a frontend or Capacitor config.
+
+```ts
+import { auth, AuthProvider } from 'capacitor-auth-manager';
+
+export async function prepareGoogle(clientId: string, iosClientId?: string) {
+  auth.configure({
+    providers: {
+      [AuthProvider.GOOGLE]: {
+        clientId,
+        serverClientId: clientId,
+        iosClientId,
+        webFlow: 'popup',
+      },
+    },
+    persistence: 'memory',
+  });
+  await auth.prepare(AuthProvider.GOOGLE);
+}
+```
+
+`prepare()` loads Google Identity Services or initializes the native SDK without opening a sign-in prompt.
+Disable the app's sign-in button until preparation succeeds. Call sign-in from a direct click, never an effect,
+a timeout, or a background refresh. Keep `configure()` outside render loops; configure before `prepare()`.
+A provider instance keeps its initial options until disposed; do not rotate client IDs during a session.
+
+## 🚀 Firebase handoff&nbsp;[#](#firebase) {#firebase}
+
+The consuming app initializes Firebase and supplies its `Auth` instance. This function works with both web flows and native credentials:
+
+```ts
+import { auth, AuthProvider } from 'capacitor-auth-manager';
+import { GoogleAuthProvider, signInWithCredential, signOut, type Auth } from 'firebase/auth';
+
+export async function signInGoogle(firebaseAuth: Auth) {
+  const { credential } = await auth.signIn(AuthProvider.GOOGLE);
+  const { idToken, accessToken } = credential;
+  if (!idToken && !accessToken) throw new Error('Google returned no usable credential');
+  try {
+    return await signInWithCredential(
+      firebaseAuth,
+      GoogleAuthProvider.credential(idToken ?? null, accessToken ?? null),
+    );
+  } catch (error) {
+    await auth.signOut().catch(() => undefined);
+    throw error;
+  }
+}
+
+export async function signOutGoogle(firebaseAuth: Auth) {
+  // Attempt both sign-outs; failure in one must not skip the other.
+  const results = await Promise.allSettled([signOut(firebaseAuth), auth.signOut()]);
+  const failed = results.find((result) => result.status === 'rejected');
+  if (failed?.status === 'rejected') throw failed.reason;
+}
+```
+
+Use Firebase's `onAuthStateChanged` to drive protected routes and your app's authenticated UI.
+The package's `user` and `isAuthenticated` indicate the local Google flow, not a verified Firebase session.
+For authenticated backend requests, get a **Firebase** ID token from `firebaseAuth.currentUser.getIdToken()`;
+`auth.getIdToken()` returns a **Google** ID token and is not interchangeable with it.
+
+## 📱 Platform setup&nbsp;[#](#platform-setup) {#platform-setup}
+
+| Platform | Required configuration |
+|---|---|
+| Web | Enable Google in Firebase Auth. Register production and development origins on the Web OAuth client and app domains in Firebase Auth. Load GIS from `https://accounts.google.com/gsi/client`; allow the Google endpoints required by your CSP. Popup flows require a click and appropriate COOP settings. |
+| Android | Register the exact application ID and debug, release, and Play App Signing SHA-1/SHA-256 fingerprints. Use the Web OAuth client ID as `serverClientId`. A Google account/Play Services must be available. `google-services.json` belongs to the consuming Firebase app configuration, not this package. |
+| iOS | Register the exact bundle ID and iOS OAuth client. Set `iosClientId` or `GIDClientID`, and the reversed iOS client ID in `CFBundleURLTypes`. CocoaPods consumers use GoogleSignIn 10.x; set the deployment target to iOS 15 or later. With Capacitor 8 use `yarn cap add ios --packagemanager CocoaPods`; this package currently has no Swift Package Manager manifest. |
+
+[Web](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/web),
+[Android](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/android), and
+[iOS](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/ios) cover the native steps.
+
+## 🧩 Tokens and state&nbsp;[#](#tokens-and-state) {#tokens-and-state}
+
+| Flow | Credential fields |
+|---|---|
+| Web `webFlow: 'popup'` | `accessToken`; no `idToken` or refresh token |
+| Web `webFlow: 'one-tap'` | `idToken`; no access token |
+| Web `webFlow: 'auto'` (default) | One-Tap ID token or popup access token; suppression may require another click to open a popup |
+| Android | `idToken`; no access token/server auth code from the sign-in call |
+| iOS | `idToken`, `accessToken`, optional `serverAuthCode` when configured |
+
+`auth.getIdToken({forceRefresh: true})` can prompt again. A popup-only web session has no Google ID token.
+Use Firebase for background app-session refresh; avoid calling Google interactive refresh on a timer.
+`auth.signOut()` clears the package's local session; also sign out Firebase as shown above.
+Android `revokeAccess()` clears local, GoogleSignIn and Credential Manager state, not Google's server-side grant.
+
+Android sign-in (`androidFlow`, since 3.1.0): `'auto'` runs GoogleSignIn (the path `@codetrix-studio/capacitor-google-auth` used) and falls back to Credential Manager on any failure except a cancel. A configuration error names the installed package and signing SHA-1 — register that SHA-1 on the app's Android OAuth client. Never force `play-services-auth` 22 (it removed GoogleSignIn).
+Account linking, account deletion, and profile updates in Firebase belong to Firebase's API.
+
+Default JS storage persists profile metadata, never token strings. Android credentials are kept in process memory;
+iOS relies on GoogleSignIn's SDK Keychain and no longer duplicates credentials in UserDefaults.
+The major upgrade removes the package's legacy Android credential store and iOS credential copies; users may need to sign in again.
+`CapacitorPreferencesStorage` is not encrypted secure storage. If your app persists secrets, it owns a reviewed Keychain/Keystore adapter.
+A cached profile is not an authorization decision. Firebase/server verification is required.
+
+## 🚑 Errors and security&nbsp;[#](#errors-and-security) {#errors-and-security}
+
+| Signal | App action |
+|---|---|
+| `USER_CANCELLED`, `POPUP_CLOSED_BY_USER` | Return to the idle sign-in UI |
+| `POPUP_BLOCKED` | Retry from a fresh click with `webFlow: 'popup'`; preload via `prepare()` |
+| `MISSING_CONFIGURATION` | Correct client IDs/native setup; do not retry in a loop |
+| `NETWORK_ERROR`, SDK load failure | Show a translated retry action after connectivity recovers |
+| `OPERATION_NOT_ALLOWED` during sign-in | An operation is already pending; keep the button disabled |
+| `INVALID_TOKEN`, `INVALID_NONCE`, `TOKEN_EXPIRED` | Reject the credential and reauthenticate |
+| `PROVIDER_NOT_ENABLED` | Use Google; other providers are roadmap code |
+
+Use `isAuthError(error)` and `AuthErrorCode` to map errors to the app's i18n keys. Catch rejected event-handler
+promises; never log credentials, tokens, or client secrets. The browser validates issuer, audience, subject,
+expiry, a configured nonce, and a configured Workspace domain, but does not verify JWT signatures.
+Google/Firebase/server verification establishes trust. Never send an OAuth access token to an ID-token-only backend.
+
+For a custom ID-token backend, choose the One-Tap/native ID-token path, require `credential.idToken`, verify
+signature/issuer/audience/expiry/nonce on the server, and issue your own session. Do not decode a token and trust its claims.
+
+## 🧪 App acceptance checks&nbsp;[#](#acceptance) {#acceptance}
+
+Verify a fresh sign-in, returning sign-in, cancel/retry, blocked popup, offline/retry, cold restart, token expiry,
+and sign-out on each deployed platform. Verify release signing fingerprints and production origins, not only debug setup.
+Confirm Firebase receives the expected user, protected routes follow Firebase state, and storage/logs contain no secret tokens.
+Native compile checks and mocked Google tests cannot certify your OAuth configuration or a real-device sign-in.
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/intro -->
+
+---
+id: intro
+title: Capacitor Auth Manager
+sidebar_label: Introduction
+slug: /intro
+description: capacitor-auth-manager is a Firebase-agnostic Google authentication library for Capacitor and the web — a drop-in alternative to @codetrix-studio/capacitor-google-auth, with one signIn call on web, iOS, and Android.
+---
+
+# Capacitor Auth Manager
+
+`capacitor-auth-manager` is a Firebase-agnostic **Google authentication** library for Capacitor and the web — a drop-in alternative to [`@codetrix-studio/capacitor-google-auth`](https://www.npmjs.com/package/@codetrix-studio/capacitor-google-auth). One call, `auth.signIn(AuthProvider.GOOGLE)`, returns a Google result `{ user, credential: { idToken?, accessToken?, serverAuthCode? } }` on **web, iOS, and Android**; your app feeds the ID token or access token into Firebase (or verifies an ID token on its backend). It works with React, Vue, Angular, and vanilla JS.
+
+It is published on npm as [`capacitor-auth-manager`](https://www.npmjs.com/package/capacitor-auth-manager) and is MIT-licensed.
+
+:::info Status (3.x): Google-first
+Right now **Google is the enabled provider** (web + iOS + Android). The package is being brought to production **one provider at a time**. The other 14 providers' code lives in the repo but is **un-registered** — calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED` — and each is re-enabled and verified on device one at a time. Treat every non-Google provider page as a roadmap reference, not a working feature.
+:::
+
+## Why this exists
+
+For native Google sign-in in a Capacitor app you normally reach for `@codetrix-studio/capacitor-google-auth`. This package does the same job (native Google ID token → your Firebase `signInWithCredential`) but is **yours to maintain**, uses the modern **Android Credential Manager** and **GoogleSignIn** SDKs, keeps the **same call on every platform**, and stays **Firebase-agnostic** (no `firebase` dependency is pulled in).
+
+## What it gives you
+
+- A single `auth` singleton that works like a store (no providers/context, similar to Zustand).
+- The **same `signIn` call on web, iOS, and Android** — native dispatch picks GoogleSignIn (iOS), GoogleSignIn with a Credential Manager fallback (Android), or Google Identity Services (web) for you.
+- A Google credential with `idToken` on native/One-Tap or `accessToken` on web popup, both accepted by Firebase.
+- First-class adapters: React hooks, Vue 3 composables, an Angular service/module/route-guard, and a vanilla-JS surface — each re-exports the `AuthProvider` enum.
+- No `firebase` dependency, and no secrets persisted by default.
+
+## What it does NOT do
+
+Honesty matters more than a long feature list when you are wiring auth.
+
+- It does **not** verify ID-token signatures in the browser. Re-validate any ID token on your server (or via Firebase) before trusting its claims.
+- It does **not** bundle Firebase. You call `signInWithCredential` yourself — the package hands you the Google credential.
+- On the web a single call returns **one** token: an `idToken` from One-Tap, or an `accessToken` from the OAuth2 popup fallback. Firebase accepts either; it never returns a refresh token in the browser.
+- Only **Google** is enabled in 3.x. The other providers are not available yet and throw `AuthErrorCode.PROVIDER_NOT_ENABLED`.
+
+## Where to go next
+
+- [Installation](/getting-started/installation) — install the package, `@capacitor/core`, and the adapter peers you use.
+- [Quick Start](/getting-started/quick-start) — sign a user in with Google in five minutes, then hand the credential to Firebase.
+- [Google provider](/providers/google) — configuration, native setup, and the per-platform token table.
+- [Migrating from `@codetrix-studio/capacitor-google-auth`](/providers/google#migrating-from-codetrix-studiocapacitor-google-auth).
+- [Configuration](/getting-started/configuration) — the full `auth.configure()` shape.
+- [API reference](/api/auth-singleton) — every `auth.*` method.
+
+---
+
+Built and maintained by [Ahsan Mahmood](https://aoneahsan.com) ([GitHub](https://github.com/aoneahsan) · [npm](https://www.npmjs.com/~aoneahsan)).
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/platforms/android -->
+
+---
+id: android
+title: Android platform
+sidebar_label: Android
+description: Using capacitor-auth-manager on Android via Capacitor — native Google sign-in through GoogleSignIn with an Android Credential Manager fallback, returning an id token you hand to Firebase or Supabase.
+---
+
+# Android platform
+
+On Android, capacitor-auth-manager runs **native Google sign-in** through **GoogleSignIn** (the account chooser `@codetrix-studio/capacitor-google-auth` used) and falls back to the **Credential Manager** API when GoogleSignIn fails for any reason other than a cancel. The same `auth.signIn(AuthProvider.GOOGLE)` call you use on web and iOS runs here too. Native Android support requires Capacitor (`@capacitor/core` `^7.4.2` or `^8`), and `yarn cap sync`.
+
+:::info Google-first (3.x)
+Google is the only enabled provider. Other providers are excluded from the published native sources — `auth.signIn()` with a non-Google id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`.
+:::
+
+## Setup
+
+1. In Google Cloud / Firebase, create an **Android** OAuth client and add **every** signing SHA-1/SHA-256: the debug key, the upload key (locally signed APKs) and the **Play App Signing** key (every Play-installed copy is re-signed with it). Create (or reuse) a **Web** OAuth client.
+2. Pass that **Web** client id as `serverClientId` — Google returns no id token without it. If you finish sign-in in Supabase, it must be in the Google provider's client list.
+3. No `google-services.json` is needed by this plugin — it uses no Firebase native SDK.
+4. The default `androidFlow: 'auto'` (since 3.1.0) shows GoogleSignIn's account chooser, which can also add an account. If GoogleSignIn fails for any reason other than a cancel, it falls back to Credential Manager (the bottom sheet, then the Sign in with Google button). Pin one path with `'legacy'`, `'credential-manager'`, `'bottom-sheet'` or `'button'`, in the provider options or per call.
+5. Every native error names Google's own status, and a configuration error adds the installed package and signing SHA-1. Read them with `adb logcat -s CapacitorAuthManager` (warnings and errors are always logged since 3.1.1).
+
+:::warning 3.0.0 on Play builds
+3.0.0 ran Credential Manager alone, and Play-installed builds failed with an error and no account picker. Upgrade to 3.1.1. Do not force `com.google.android.gms:play-services-auth` 22.x in your app: 22.0.0 removed GoogleSignIn, so the package pins 21.6.0.
+:::
+
+The plugin declares only `INTERNET`. Nothing else is merged into your manifest.
+
+```typescript
+import { auth, AuthProvider } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    [AuthProvider.GOOGLE]: {
+      clientId: 'YOUR_WEB_OAUTH_CLIENT_ID',
+      serverClientId: 'YOUR_WEB_OAUTH_CLIENT_ID', // REQUIRED for an idToken
+    },
+  },
+});
+
+const result = await auth.signIn(AuthProvider.GOOGLE);
+// Android returns an idToken reliably; accessToken / serverAuthCode come from the
+// separate Google Authorization API, not the sign-in call.
+const idToken = result.credential.idToken;
+```
+
+Hand `idToken` to Firebase with `signInWithCredential(getAuth(), GoogleAuthProvider.credential(idToken))`. The web popup returns an access token instead; see the [Firebase integration guide](/integration/ai).
+
+## Native source
+
+The Google native path lives in `GoogleAuthProvider.java` on top of shared scaffolding — `BaseAuthProvider.java`, `ProviderFactory.java`, `AuthStorage.java`, `AuthLogger.java`, and the plugin entry points `CapacitorAuthManager.java` and `CapacitorAuthManagerPlugin.java`. Package CI compiles native consumers. Validate real Google sign-in with your OAuth clients on a device before rollout.
+
+## Secure storage
+
+Storage adapters persist profile/session metadata, not bearer credentials. Android tokens stay in memory. Legacy package credential storage is removed on upgrade. `CapacitorPreferencesStorage` is optional metadata storage and is not encrypted. See [Storage](/api/storage).
+
+```typescript
+import { auth, CapacitorPreferencesStorage } from 'capacitor-auth-manager';
+
+auth.configure({
+  storage: new CapacitorPreferencesStorage(),
+  providers: { google: { clientId: 'YOUR_CLIENT_ID' } },
+});
+```
+
+## Errors
+
+Native failures reach JavaScript with a real `AuthErrorCode` (since 3.0.0), so you can branch on
+`error.code` rather than on message text:
+
+| Situation | Code |
+|---|---|
+| the user dismissed the bottom sheet or the button flow | `auth/user-cancelled` |
+| no Google account on the device, and the button flow could not add one | `auth/sign-in-failed` |
+| the request was interrupted (Play services restarted, connectivity lost) | `auth/network-error` |
+| `serverClientId` (your **Web** OAuth client id) is missing | `auth/missing-configuration` |
+| the credential could not be parsed as a Google ID token | `auth/invalid-credentials` |
+| a silent refresh could not produce a token | `auth/token-refresh-failed` |
+
+## Related
+
+- [Installation](/getting-started/installation)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/platforms/ios -->
+
+---
+id: ios
+title: iOS platform
+sidebar_label: iOS
+description: Using capacitor-auth-manager on iOS via Capacitor — native Google sign-in through the GoogleSignIn SDK, returning an id token (plus access token) you hand to Firebase.
+---
+
+# iOS platform
+
+On iOS, capacitor-auth-manager runs **native Google sign-in** through the **GoogleSignIn** SDK. The same `auth.signIn(AuthProvider.GOOGLE)` call you use on web and Android runs here too. Native iOS support requires Capacitor (`@capacitor/core` `^7.4.2` or `^8`) and `yarn cap sync`.
+
+:::info Google-first (3.x)
+Google is the only enabled provider. Other providers are excluded from the published native sources — `auth.signIn()` with a non-Google id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`.
+:::
+
+Requires iOS 15 or newer and GoogleSignIn 10.x. Use a CocoaPods-based Capacitor project; this package does not ship a Swift Package manifest.
+
+## Setup
+
+1. Create an **iOS** OAuth client in Google Cloud.
+2. Add `GIDClientID` (your iOS client id) to `Info.plist`, or pass it as `iosClientId`.
+3. Add the **reversed client id** as a URL scheme in `Info.plist` → `CFBundleURLTypes` (e.g. `com.googleusercontent.apps.XXXX`).
+4. For a `serverAuthCode`, also set `serverClientId` (your Web client id).
+
+```typescript
+import { auth, AuthProvider } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    [AuthProvider.GOOGLE]: {
+      iosClientId: 'YOUR_IOS_OAUTH_CLIENT_ID',   // or set GIDClientID in Info.plist
+      serverClientId: 'YOUR_WEB_OAUTH_CLIENT_ID', // for a serverAuthCode
+    },
+  },
+});
+
+const result = await auth.signIn(AuthProvider.GOOGLE);
+// iOS returns idToken + accessToken (+ serverAuthCode when serverClientId is set).
+const idToken = result.credential.idToken;
+```
+
+Hand `idToken` to Firebase with `signInWithCredential(getAuth(), GoogleAuthProvider.credential(idToken))`. The web popup returns an access token instead; see the [Firebase integration guide](/integration/ai). A `serverAuthCode` must be exchanged on **your** server, never in the app.
+
+## Native source
+
+The Google native path lives in `GoogleAuthProvider.swift` on shared scaffolding — `BaseAuthProvider.swift`, `Models.swift`, `AuthStorage.swift`, `AuthLogger.swift`, and the entry points `CapacitorAuthManager.swift` and `Plugin.swift`. Package CI compiles native consumers. Validate real Google sign-in with your OAuth clients on a device before rollout.
+
+## Secure storage
+
+Storage adapters persist profile/session metadata, not bearer credentials. The GoogleSignIn SDK owns its Keychain session. Package copies of credentials are removed from UserDefaults on upgrade. `CapacitorPreferencesStorage` is optional metadata storage and is not encrypted. See [Storage](/api/storage).
+
+```typescript
+import { auth, AuthProvider, CapacitorPreferencesStorage } from 'capacitor-auth-manager';
+
+auth.configure({
+  storage: new CapacitorPreferencesStorage(),
+  providers: { [AuthProvider.GOOGLE]: { iosClientId: 'YOUR_IOS_OAUTH_CLIENT_ID' } },
+});
+```
+
+## Related
+
+- [Installation](/getting-started/installation)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/platforms/web -->
+
+---
+id: web
+title: Web platform
+sidebar_label: Web
+description: How capacitor-auth-manager runs Google sign-in on the web with Google Identity Services — no backend required, returning an ID or access token you hand to Firebase.
+---
+
+# Web platform
+
+The web is one of capacitor-auth-manager's three first-class Google surfaces (web, iOS, Android). The package is a plain TypeScript library: it runs in any browser without Capacitor, and the singleton auto-initializes when `window` exists. On the web, `auth.signIn(AuthProvider.GOOGLE)` uses **Google Identity Services** (One-Tap ID tokens or OAuth2 popup access tokens), so **no client secret and no backend** are required.
+
+```typescript
+import { auth, AuthProvider } from 'capacitor-auth-manager';
+
+auth.configure({ providers: { [AuthProvider.GOOGLE]: { clientId: 'YOUR_WEB_OAUTH_CLIENT_ID' } } });
+const result = await auth.signIn(AuthProvider.GOOGLE);
+const idToken = result.credential.idToken; // web returns an idToken (no accessToken)
+```
+
+:::info Google-first (3.x)
+Google is the only enabled provider. Other provider ids throw `AuthErrorCode.PROVIDER_NOT_ENABLED`. See the [provider overview](/providers/overview).
+:::
+
+## Google on the web
+
+| What | Detail |
+|---|---|
+| Mechanism | Google Identity Services (GIS): One-Tap / FedCM id-token flow, with an OAuth2 popup fallback |
+| Backend required? | No — no client secret needed for either flow |
+| Returns | One-Tap: `idToken`. Popup: `accessToken` (+ the Google profile). Never both from one call. |
+| Firebase handoff | `signInWithCredential(getAuth(), GoogleAuthProvider.credential(idToken ?? null, accessToken))` |
+
+### Which flow runs — `webFlow`
+
+| `webFlow` | Behaviour |
+|---|---|
+| `'auto'` (default) | Try One-Tap / FedCM. If the browser does not display it (cooldown, FedCM opt-out, third-party-cookie settings) fall back to the OAuth2 popup. |
+| `'one-tap'` | One-Tap only. A suppressed prompt rejects with `POPUP_BLOCKED`; a user dismissal rejects with `USER_CANCELLED`. |
+| `'popup'` | The OAuth2 token popup only — deterministic, works from any click handler. Closing it rejects with `POPUP_CLOSED_BY_USER`. |
+
+Set it once in the provider options or per call:
+
+```typescript
+auth.configure({ providers: { [AuthProvider.GOOGLE]: { clientId, webFlow: 'auto' } } });
+await auth.signIn({ provider: AuthProvider.GOOGLE, options: { webFlow: 'popup' } });
+```
+
+For Google's branded button, call `renderButton(element)` on the web provider class — import it with `import { GoogleAuthProviderWeb } from 'capacitor-auth-manager/providers/web'` and construct it yourself, since it is not exposed on the `auth` singleton. It shares the One-Tap credential callback.
+
+Add your dev and production origins (for example `http://localhost:5931`) to the Web OAuth client's **Authorized JavaScript origins** in Google Cloud — both flows check it.
+
+## Honest limitation: ID tokens are not verified client-side
+
+The library validates an OIDC `nonce` and the ID token's `exp` claim, but it does **not** verify the token's signature in the browser. Treat any ID token as untrusted until your server (or Firebase) re-validates it.
+
+## Storage default
+
+On the web, the session is stored in `localStorage` by default (configurable to `sessionStorage` or in-memory via the `persistence` option). `localStorage` is readable by any script on the origin, so it is exposed to XSS. Stored profiles are UI metadata, not a verified authorization session. Tokens stay in memory; Firebase owns the application session. Biometric authentication is disabled. See [Storage](/api/storage) for backends and the security trade-offs.
+
+## Supported environments
+
+The core library has no required peer dependencies. The framework adapters pull in their own peers: React `16.8`–`19`, Vue `^3`, and Angular up to `^21`. `@capacitor/core` (`^7` or `^8`) is optional and only needed for the native plugin or `CapacitorPreferencesStorage`.
+
+## Related
+
+- [Installation](/getting-started/installation)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/apple -->
+
+---
+id: apple
+title: Apple authentication
+sidebar_label: Apple
+description: Configure and use the Apple provider in capacitor-auth-manager. Sign in with Apple JS handles the web flow; re-validate the ID token server-side before trusting claims.
+---
+
+# Apple authentication
+
+:::caution Not yet available (3.x)
+The Apple provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
+The Apple provider signs users in with Sign in with Apple JS (`window.AppleID`). It validates the returned ID token's nonce and expiry before building the user object.
+
+## When you need a backend
+
+No backend is required to complete the browser sign-in. However, Apple sign-in returns an ID token that you should re-validate server-side before trusting its claims — the library does not verify the token signature in the browser.
+
+## Configuration
+
+```typescript
+import { auth, AppleAuthScope } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    apple: {
+      clientId: 'YOUR_SERVICE_ID',
+      redirectUri: 'https://your-app.com/auth/callback',
+      scopes: [AppleAuthScope.EMAIL, AppleAuthScope.NAME],
+    },
+  },
+});
+```
+
+## Options
+
+From the `AppleAuthOptions` interface in `src/definitions.ts`:
+
+| Option | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `clientId` | `string` | Yes | Apple Service ID (the web client identifier). |
+| `redirectUri` | `string` | Yes | Redirect URI registered with Apple. |
+| `scopes` | `AppleAuthScope[]` | No | `AppleAuthScope.EMAIL` and/or `AppleAuthScope.NAME`. |
+| `usePopup` | `boolean` | No | Use a popup instead of a redirect. Defaults to `true`. |
+| `state` | `string` | No | CSRF state value. |
+| `nonce` | `string` | No | Nonce for ID-token replay protection. |
+| `responseMode` | `'query' \| 'fragment' \| 'form_post'` | No | Response delivery mode. Defaults to `'form_post'`. |
+| `responseType` | `'code' \| 'id_token' \| 'code id_token'` | No | Response type. Defaults to `'code id_token'`. |
+
+## Sign in
+
+```typescript
+await auth.signIn('apple');
+```
+
+## Notes & caveats
+
+- The Sign in with Apple JS library must be loaded on the page (`window.AppleID`).
+- `usePopup` defaults to `true`; with a popup blocked, the flow cannot complete.
+- The ID token's nonce and `exp` are validated client-side, but its signature is not. Re-validate the ID token on your server before trusting identity claims.
+
+## Related
+
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/biometric -->
+
+---
+id: biometric
+title: Biometric authentication
+sidebar_label: Biometric
+description: "Configure the device-local biometric provider in capacitor-auth-manager: no backend, it runs through the optional native plugin over stored credentials."
+---
+
+# Biometric authentication
+
+:::caution Not yet available (3.x)
+The biometric provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
+The biometric provider re-authenticates a user with the device's Face ID, Touch ID, or fingerprint sensor and returns the credentials you previously stored on that device. It is device-local: there is no backend, but the user must first sign in with another provider so there is a credential to unlock.
+
+## Backend requirement
+
+None. The biometric prompt runs through the optional native plugin [`capacitor-biometric-authentication`](https://www.npmjs.com/package/capacitor-biometric-authentication); if the plugin is not installed, sign-in throws `BIOMETRIC_NOT_AVAILABLE`. Credential material is stored locally and, in the web fallback, encrypted at rest with AES-GCM using a non-extractable key held in IndexedDB (it falls back to base64 only in insecure contexts without Web Crypto). Because credentials are stored after another sign-in, you must call the provider's `storeUserCredentials(user, credential)` first; `signIn('biometric')` then unlocks them.
+
+## Configuration
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    biometric: {
+      title: 'Authentication Required',
+      description: 'Authenticate to access your account',
+    },
+  },
+});
+```
+
+## Options
+
+From the `BiometricAuthOptions` interface in `src/definitions.ts`:
+
+| Option | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `fallbackToPasscode` | `boolean` | No | Allow falling back to the device passcode. |
+| `title` | `string` | No | Prompt title. |
+| `subtitle` | `string` | No | Prompt subtitle. |
+| `description` | `string` | No | Prompt description / reason shown to the user. |
+| `negativeButtonText` | `string` | No | Text of the cancel button. |
+| `maxAttempts` | `number` | No | Allowed biometric attempts before failing. |
+| `requireConfirmation` | `boolean` | No | Require an explicit confirmation step. |
+| `authenticatorTypes` | `BiometricType[]` | No | Acceptable biometrics (`fingerprint`, `faceId`, `touchId`, `iris`, `voice`). |
+| `allowedAuthenticators` | `number` | No | Bitmask of platform authenticator classes to allow. |
+
+## Sign in
+
+`signIn('biometric')` takes no credentials — it unlocks the previously stored credentials after a successful biometric check:
+
+```typescript
+// Earlier: sign in another way, then persist for biometric unlock
+// (storeUserCredentials is a method on the biometric provider instance).
+
+await auth.signIn('biometric');
+```
+
+## Errors
+
+All failures are thrown as `AuthError` with an `AuthErrorCode`:
+
+- `BIOMETRIC_NOT_AVAILABLE` — plugin missing or no biometric hardware.
+- `NO_STORED_CREDENTIALS` — nothing was stored for biometric unlock yet.
+- `BIOMETRIC_NOT_ENROLLED` / `BIOMETRIC_LOCKOUT` / `BIOMETRIC_AUTHENTICATION_FAILED` — enrollment, lockout, or failed-check states.
+- `USER_CANCELLED` — the user dismissed the prompt.
+
+## Related
+
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/email-code -->
+
+---
+id: email-code
+title: Email code (OTP) authentication
+sidebar_label: Email Code
+description: "Configure the passwordless email code (OTP) provider in capacitor-auth-manager: a backend you supply sends the code and verifies it in two steps."
+---
+
+# Email code (OTP) authentication
+
+:::caution Not yet available (3.x)
+The email-code (OTP) provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
+The email code provider is a passwordless, two-step flow: the first call asks your backend to email a one-time code, and the second call submits that code for verification. The library tracks the pending verification (metadata only, persisted across reloads) and orchestrates state; your backend generates, emails, and validates the code.
+
+## Backend requirement
+
+This provider needs a backend. The web implementation (`src/providers/web/email-code-provider.ts`) `POST`s `{ email, clientId, codeLength }` to your send-code endpoint and expects a `sessionId` back, then `POST`s `{ email, code, sessionId, clientId }` to your verify endpoint and expects a user (`uid`, optional tokens). A `401` on verify becomes `INVALID_CODE`. The verification code itself is never stored client-side — only non-secret metadata (session id, expiry, attempt count) is persisted.
+
+The web provider reads its endpoint URLs from runtime options — `sendCodeUrl` and `verifyCodeUrl` (required), plus optional `clientId`, `codeLength`, `resendDelay`, `codeExpiration`. This runtime config differs from the typed `EmailCodeOptions` interface documented below — supply `sendCodeUrl` and `verifyCodeUrl` so the provider can reach your backend.
+
+## Configuration
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    email_code: {
+      codeLength: 6,
+      codeExpiration: 600000, // 10 minutes
+    },
+  },
+});
+```
+
+The config key `email_code` matches the `AuthProvider.EMAIL_CODE` enum value; the hyphenated `email-code` resolves to the same provider. Use whichever form consistently in both `configure()` and `signIn()`.
+
+## Options
+
+From the `EmailCodeOptions` interface in `src/definitions.ts`:
+
+| Option | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `codeLength` | `number` | No | Number of digits in the emailed code. |
+| `codeExpiration` | `number` | No | Code lifetime in milliseconds. |
+| `maxAttempts` | `number` | No | Allowed verification attempts before the code is invalidated. |
+| `customEmailTemplate` | `string` | No | Template identifier for the verification email. |
+| `rateLimit` | `{ maxAttempts: number; windowMs: number }` | No | Send-rate limit window. |
+
+## Sign in
+
+The flow is two calls with `EmailCodeCredentials` (`{ email, code? }`):
+
+```typescript
+// Step 1 — request the code (no `code`)
+await auth.signIn({ provider: 'email_code', credentials: { email: 'user@example.com' } });
+
+// Step 2 — verify the code
+await auth.signIn({
+  provider: 'email_code',
+  credentials: { email: 'user@example.com', code: '123456' },
+});
+```
+
+## Errors
+
+All failures are thrown as `AuthError` with an `AuthErrorCode`:
+
+- `EMAIL_REQUIRED` / `INVALID_EMAIL` — missing or malformed email.
+- `INVALID_CODE` / `CODE_EXPIRED` — verification failed or the code lapsed.
+- `NO_PENDING_VERIFICATION` — verifying without a sent code.
+- `TOO_MANY_ATTEMPTS` / `RESEND_DELAY` — attempt or resend throttling.
+
+## Related
+
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/email-password -->
+
+---
+id: email-password
+title: Email and password authentication
+sidebar_label: Email + Password
+description: "Configure the email and password provider in capacitor-auth-manager: it sends credentials to a backend you supply that verifies and persists them."
+---
+
+# Email and password authentication
+
+:::caution Not yet available (3.x)
+The email-and-password provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
+The email and password provider signs users in by sending an email/password pair to a backend you operate, which verifies the credentials and returns a user plus tokens. The library orchestrates the request and the resulting auth state; it is not itself the credential store.
+
+## Backend requirement
+
+This provider is not self-contained. The web implementation (`src/providers/web/email-password-provider.ts`) issues a `POST` to your `/auth/signin` endpoint with `{ email, password, clientId }` and expects a JSON body containing at least `uid`, `email`, `accessToken`, and `refreshToken`. A `401` response surfaces as `INVALID_CREDENTIALS`. You must run that endpoint (and, for the other operations, `/auth/signout`, `/auth/refresh`, `/auth/update-password`, `/auth/reset-password`, `/auth/verify-email`).
+
+The web provider reads the base URL from an `apiUrl` field on the provider options. Note that the runtime config the provider reads (`apiUrl`, `clientId`, `passwordRequirements`, `allowSignUp`) differs from the typed `EmailPasswordOptions` interface documented below — supply `apiUrl` so the provider can reach your backend.
+
+## Configuration
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    'email-password': {
+      strengthRequirements: {
+        minLength: 8,
+        requireUppercase: true,
+        requireNumbers: true,
+      },
+      requireEmailVerification: true,
+    },
+  },
+});
+```
+
+## Options
+
+From the `EmailPasswordOptions` interface in `src/definitions.ts`:
+
+| Option | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `strengthRequirements` | `PasswordStrengthRequirements` | No | Declarative password rules (min/max length, char-class requirements, custom regex). |
+| `allowPasswordReset` | `boolean` | No | Whether the password-reset flow is offered. |
+| `requireEmailVerification` | `boolean` | No | Require a verified email before the account is usable. |
+| `customValidation` | `{ endpoint?: string; headers?: Record<string, string> }` | No | Optional endpoint for additional server-side validation. |
+
+## Sign in
+
+Pass an `EmailPasswordCredentials` object (`{ email, password }`) under `credentials`:
+
+```typescript
+await auth.signIn({
+  provider: 'email-password',
+  credentials: { email: 'user@example.com', password: 'secure-password' },
+});
+```
+
+Use the same `'email-password'` key in `configure()` and `signIn()` — the configuration lookup is an exact string match.
+
+## Errors
+
+All failures are thrown as `AuthError` with an `AuthErrorCode`:
+
+- `CREDENTIALS_REQUIRED` — email or password missing.
+- `INVALID_CREDENTIALS` — backend returned `401`.
+- `SIGN_IN_FAILED` — any other backend/network failure.
+
+## Related
+
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/facebook -->
+
+---
+id: facebook
+title: Facebook authentication
+sidebar_label: Facebook
+description: Configure and use the Facebook provider in capacitor-auth-manager. It uses the Facebook JS SDK and completes login in the browser with no backend required.
+---
+
+# Facebook authentication
+
+:::caution Not yet available (3.x)
+The Facebook provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
+The Facebook provider signs users in with the Facebook JS SDK (`window.FB`). The provider loads the SDK from `connect.facebook.net` and initializes it with your app ID and Graph API version.
+
+## When you need a backend
+
+No backend is required for the basic login flow — the Facebook JS SDK returns an access token in the browser. A backend is only needed if you want to verify or extend the access token server-side (recommended before trusting it for authorization).
+
+## Configuration
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    facebook: {
+      appId: 'YOUR_FACEBOOK_APP_ID',
+      scopes: ['email', 'public_profile'],
+      fields: ['id', 'name', 'email', 'picture'],
+    },
+  },
+});
+```
+
+## Options
+
+From the `FacebookAuthOptions` interface in `src/definitions.ts`:
+
+| Option | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `appId` | `string` | Yes | Facebook application ID. |
+| `appSecret` | `string` | No | Server-side use only — do not ship in the browser bundle. |
+| `scopes` | `string[]` | No | Permissions to request (e.g. `email`, `public_profile`). |
+| `fields` | `string[]` | No | Graph API profile fields to fetch. |
+| `version` | `string` | No | Graph API version. Defaults to `v18.0`. |
+| `loginBehavior` | `'native_with_fallback' \| 'native_only' \| 'web_only' \| 'web_view_only'` | No | Login behavior preference. |
+| `defaultAudience` | `'friends' \| 'only_me' \| 'everyone'` | No | Default audience for posted content permissions. |
+| `limitedLogin` | `boolean` | No | Use Facebook Limited Login (privacy-restricted, OIDC-style token). |
+| `authType` | `string` | No | Auth type parameter (e.g. re-request declined permissions). |
+| `messengerPageId` | `string` | No | Messenger page association. |
+| `resetMessengerState` | `boolean` | No | Reset Messenger extension state. |
+
+## Sign in
+
+```typescript
+await auth.signIn('facebook');
+```
+
+## Notes & caveats
+
+- The provider loads and initializes the Facebook JS SDK itself; the login depends on Facebook's SDK being reachable.
+- `limitedLogin` follows Facebook's Limited Login mode, which restricts the data returned.
+- The library does not verify token signatures in the browser — re-validate the access/ID token server-side before trusting it.
+
+## Related
+
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/firebase -->
+
+---
+id: firebase
+title: Firebase authentication
+sidebar_label: Firebase
+description: Configure and use the Firebase provider in capacitor-auth-manager. It wraps the Firebase JS SDK and dispatches to a configurable default sign-in sub-method.
+---
+
+# Firebase authentication
+
+:::caution Not yet available (3.x)
+The Firebase provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. (This package is Firebase-agnostic — to use Firebase today, sign in with the Google provider and hand the id token to `signInWithCredential` yourself; see the [Google provider](/providers/google).) See the [provider overview](/providers/overview).
+:::
+
+The Firebase provider signs users in with the Firebase JS SDK. It initializes a Firebase app from your config and dispatches sign-in to a sub-method (Google, Facebook, GitHub, Microsoft, Apple, email/password, or anonymous), defaulting to the `defaultMethod` you configure.
+
+## When you need a backend
+
+No backend is required for the browser sign-in — Firebase Authentication handles the flow. Use the Firebase Admin SDK on a server only if you need to verify Firebase ID tokens or manage users server-side.
+
+## Configuration
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    firebase: {
+      apiKey: 'YOUR_FIREBASE_API_KEY',
+      authDomain: 'your-app.firebaseapp.com',
+      projectId: 'your-app',
+      appId: 'YOUR_FIREBASE_APP_ID',
+      defaultMethod: 'google',
+    },
+  },
+});
+```
+
+## Options
+
+From the `FirebaseAuthOptions` interface in `src/definitions.ts`:
+
+| Option | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `apiKey` | `string` | Yes | Firebase web API key. |
+| `authDomain` | `string` | Yes | Firebase auth domain. |
+| `projectId` | `string` | Yes | Firebase project ID. |
+| `appId` | `string` | Yes | Firebase app ID. |
+| `storageBucket` | `string` | No | Firebase storage bucket. |
+| `messagingSenderId` | `string` | No | Cloud Messaging sender ID. |
+| `measurementId` | `string` | No | Analytics measurement ID. |
+| `tenantId` | `string` | No | Identity Platform tenant ID. |
+| `persistence` | `'local' \| 'session' \| 'none'` | No | Firebase Auth state persistence. |
+| `enableMultiTabSupport` | `boolean` | No | Enable multi-tab persistence support. |
+| `defaultMethod` | `'google' \| 'facebook' \| 'github' \| 'microsoft' \| 'apple' \| 'email' \| 'anonymous'` | No | Fallback sub-method when `signIn` is called without an explicit method and no email/password credentials. Defaults to `'google'`. |
+
+## Sign in
+
+```typescript
+// Uses defaultMethod (e.g. 'google')
+await auth.signIn('firebase');
+
+// Email/password sub-method via credentials
+await auth.signIn({
+  provider: 'firebase',
+  credentials: { email: 'user@example.com', password: 'secure-password' },
+});
+```
+
+## Notes & caveats
+
+- When email and password credentials are supplied, the provider uses the `email` sub-method; otherwise it uses `defaultMethod` (default `'google'`).
+- OAuth sub-methods use Firebase's `signInWithPopup`, so a blocked popup prevents completion.
+- The library does not verify Firebase ID-token signatures itself; use the Firebase Admin SDK server-side to verify tokens you trust for authorization.
+
+## Related
+
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/github -->
+
+---
+id: github
+title: GitHub authentication
+sidebar_label: GitHub
+description: Configure and use the GitHub provider in capacitor-auth-manager. GitHub requires a backend token-exchange proxy because it blocks browser-side code-to-token exchange.
+---
+
+# GitHub authentication
+
+:::caution Not yet available (3.x)
+The GitHub provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
+The GitHub provider signs users in with GitHub's OAuth authorization-code flow. The browser obtains an authorization `code`, but the code-to-token exchange must happen on a server.
+
+## When you need a backend
+
+A backend is required. GitHub does not permit browser-side code-to-token exchange — it needs the client secret and blocks CORS on its token endpoint. You must set `tokenExchangeProxy` (alias `tokenEndpoint`) to a server endpoint. Without it, sign-in throws a `MISSING_CONFIG` error explaining that a proxy is required.
+
+The proxy receives `{ code, redirectUri, state }` as a JSON `POST` body and must return GitHub's token JSON (for example `{ access_token, token_type, scope }`). Keep the client secret on the server.
+
+## Configuration
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    github: {
+      clientId: 'YOUR_GITHUB_CLIENT_ID',
+      redirectUri: 'https://your-app.com/auth/github/callback',
+      tokenExchangeProxy: 'https://your-api.com/auth/github/token',
+      scopes: ['read:user', 'user:email'],
+    },
+  },
+});
+```
+
+## Options
+
+From the `GitHubAuthOptions` interface in `src/definitions.ts`:
+
+| Option | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `clientId` | `string` | Yes | GitHub OAuth app client ID. |
+| `redirectUri` | `string` | Yes | Redirect URI registered with the OAuth app. |
+| `tokenExchangeProxy` | `string` | Yes in practice | Backend endpoint that exchanges the `code` for a token. Without it, sign-in fails. |
+| `tokenEndpoint` | `string` | No | Alias for `tokenExchangeProxy`. |
+| `clientSecret` | `string` | No | Keep on the server (the proxy uses it) — never embed in the browser. |
+| `scopes` | `string[]` | No | OAuth scopes to request. |
+| `allowSignup` | `boolean` | No | Allow users without an account to sign up during authorization. |
+| `login` | `string` | No | Suggest a specific account to sign in with. |
+| `state` | `string` | No | CSRF state value (also forwarded to the proxy). |
+
+## Sign in
+
+```typescript
+await auth.signIn('github');
+```
+
+## Notes & caveats
+
+- `tokenExchangeProxy` (or `tokenEndpoint`) is mandatory; the in-browser flow cannot complete without it.
+- The provider generates and tracks a CSRF `state` value and forwards it to the proxy for re-verification.
+- The library does not verify tokens in the browser — validate the GitHub access token server-side.
+
+## Related
+
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/google -->
+
+---
+id: google
+title: Google authentication
+sidebar_label: Google
+description: Configure and use the Google provider in capacitor-auth-manager — the same signIn call on web, iOS, and Android, returning a Google ID or access token you hand to Firebase. Native setup and the codetrix migration.
+---
+
+# Google authentication
+
+Google is the **enabled provider** in capacitor-auth-manager (3.x). The same call —
+`auth.signIn(AuthProvider.GOOGLE)` — dispatches natively to the right Google SDK on each platform and returns a Google credential containing an ID token or an access token, depending on the flow:
+
+| Platform | Mechanism | Returns |
+|---|---|---|
+| **Web** | Google Identity Services | One-Tap: `idToken`; popup: `accessToken` |
+| **iOS** | GoogleSignIn | `idToken` + `accessToken` (+ `serverAuthCode` when `serverClientId` is set) |
+| **Android** | GoogleSignIn, Credential Manager fallback | `idToken` reliably (`accessToken` / `serverAuthCode` come from the separate Google Authorization API, not the sign-in call) |
+
+For Firebase, use `GoogleAuthProvider.credential(idToken ?? null, accessToken ?? null)` so both web flows work.
+
+## When you need a backend
+
+Sign-in completes with **no backend** required. Both web flows use Google Identity Services and need no client secret. You only involve a server if you opt into a `serverAuthCode` (iOS) and exchange it for refresh tokens — and that exchange must happen on **your** server, never in the browser.
+
+## Configuration
+
+Use the exported `AuthProvider` enum (recommended — typo-safe; the string `'google'` also works).
+
+```typescript
+import { auth, AuthProvider } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    [AuthProvider.GOOGLE]: {
+      clientId: 'YOUR_WEB_OAUTH_CLIENT_ID',        // web + Android serverClientId fallback
+      serverClientId: 'YOUR_WEB_OAUTH_CLIENT_ID',  // REQUIRED on Android to receive an idToken
+      iosClientId: 'YOUR_IOS_OAUTH_CLIENT_ID',     // iOS (or set GIDClientID in Info.plist)
+      webFlow: 'popup',                          // direct click; Firebase accepts access tokens
+    },
+  },
+  persistence: 'memory',
+});
+```
+
+You can also set the Google options in `capacitor.config` under the plugin block instead of `auth.configure`.
+
+## Options (`GoogleAuthOptions`)
+
+| Option | Where | Purpose |
+|---|---|---|
+| `clientId` | web (required), Android fallback | Web OAuth client id; the id token's `aud`. |
+| `serverClientId` | Android (required for idToken), iOS | Web OAuth client id; Google needs it to return an idToken. |
+| `iosClientId` | iOS | iOS OAuth client id (or set `GIDClientID` in `Info.plist`). |
+| `scopes` | all | Extra OAuth scopes (default `openid email profile`). |
+| `hostedDomain` | all | Restrict to a Google Workspace domain. |
+| `loginHint` | all | Prefill an account. |
+| `filterByAuthorizedAccounts` | Android | Credential Manager returning-user UX. |
+| `autoSelectEnabled` | Android | One-tap auto-select for returning users. |
+| `nonce` | web, iOS, Android | Bind the request to an id-token `nonce` claim (validated). |
+| `webFlow` | web | `'auto'` (default: One-Tap, then the OAuth2 popup if One-Tap is not shown) · `'one-tap'` · `'popup'`. Also accepted per call in `signIn({ options })`. |
+| `androidFlow` | Android | `'auto'` (default since 3.1.0: GoogleSignIn, then Credential Manager if it fails for any reason other than a cancel) · `'legacy'` · `'credential-manager'` · `'bottom-sheet'` · `'button'`. Also accepted per call. |
+
+## Sign in
+
+```typescript
+const result = await auth.signIn(AuthProvider.GOOGLE);
+const idToken = result.credential.idToken;         // One-Tap (web), iOS, Android
+const accessToken = result.credential.accessToken; // web popup fallback, iOS
+```
+
+## Hand the credential to Firebase (identical on every platform)
+
+The package is Firebase-agnostic — it pulls in no `firebase` dependency. You feed the Google id token to Firebase yourself:
+
+```typescript
+import { getAuth, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+
+const result = await auth.signIn(AuthProvider.GOOGLE);
+const { idToken, accessToken } = result.credential;
+await signInWithCredential(
+  getAuth(),
+  GoogleAuthProvider.credential(idToken ?? null, accessToken),
+);
+```
+
+## What you get back
+
+`signIn` resolves to an `AuthResult`:
+
+```ts
+{
+  user: { uid, email, emailVerified, displayName, photoURL, providerData: [...], metadata: {...} },
+  credential: {
+    providerId: 'google.com',
+    signInMethod: 'google.com',
+    idToken?: string,        // web One-Tap, iOS, Android
+    accessToken?: string,    // web popup and iOS; not returned by Android sign-in
+    serverAuthCode?: string, // iOS when serverClientId + offline access; exchange on YOUR server only
+  },
+}
+```
+
+Per-platform token availability (honest):
+
+- **Web** (GIS): One-Tap returns an **`idToken`**; the OAuth2 popup fallback returns an **`accessToken`** (and the Google profile). Firebase accepts either — `GoogleAuthProvider.credential(idToken ?? null, accessToken)`. See [Web platform](/platforms/web).
+- **iOS** (GoogleSignIn): `idToken` + `accessToken` (+ `serverAuthCode` when `serverClientId` is set).
+- **Android** (GoogleSignIn, Credential Manager fallback): returns **`idToken`** — from GoogleSignIn's account chooser, or from Credential Manager when GoogleSignIn fails (`androidFlow: 'auto'`). `accessToken` / `serverAuthCode` require the separate Google Authorization API and are not returned by the sign-in call (planned).
+
+For the complete React/Firebase bootstrap, Firebase session ownership, and failure handling, use the [AI integration guide](/integration/ai).
+
+## Native setup
+
+### Android
+
+1. In Google Cloud / Firebase, create an **Android** OAuth client and add **every** signing SHA-1/SHA-256 (debug, upload and Play App Signing); create (or reuse) a **Web** OAuth client.
+2. Pass that **Web** client id as `serverClientId`; Google returns no idToken without it.
+3. No `google-services.json` is needed by this plugin — it uses no Firebase native SDK. Google needs only the registered fingerprint and the Web client id.
+4. The default flow shows GoogleSignIn's account chooser (which can add an account) and falls back to Credential Manager. See [Android platform](/platforms/android).
+
+The plugin declares only `INTERNET`; no SMS, contacts or biometric permissions are added to your manifest.
+
+### iOS
+
+1. Create an **iOS** OAuth client in Google Cloud.
+2. Add `GIDClientID` (your iOS client id) to `Info.plist`, or pass it as `iosClientId`.
+3. Add the **reversed client id** as a URL scheme in `Info.plist` → `CFBundleURLTypes` (e.g. `com.googleusercontent.apps.XXXX`).
+4. For a `serverAuthCode`, also set `serverClientId` (your Web client id).
+
+## Migrating from `@codetrix-studio/capacitor-google-auth` {#migrating-from-codetrix-studiocapacitor-google-auth}
+
+```ts
+// before
+await GoogleAuth.initialize({ clientId });
+const u = await GoogleAuth.signIn();
+await signInWithCredential(getAuth(), GoogleAuthProvider.credential(u.authentication.idToken));
+
+// after
+import { auth, AuthProvider } from 'capacitor-auth-manager';
+auth.configure({ providers: { [AuthProvider.GOOGLE]: { clientId, serverClientId, iosClientId } } });
+const res = await auth.signIn(AuthProvider.GOOGLE);
+await signInWithCredential(getAuth(), GoogleAuthProvider.credential(res.credential.idToken ?? null, res.credential.accessToken ?? null));
+```
+
+The id token moves from `result.authentication.idToken` to `result.credential.idToken`. Use both credential fields in Firebase handoff because the web popup returns an access token.
+
+## Security & storage
+
+- **No secrets are persisted by default.** Short-lived id tokens are re-derived from the Google SDK's silent restore rather than written to `localStorage` / `@capacitor/preferences`. Storage adapters hold profile/session metadata, not bearer credentials. Android tokens are memory-only; the iOS Google SDK owns its Keychain session.
+- Both GIS web flows require no client secret. A `serverAuthCode` (iOS) must be exchanged on **your** server, never in the browser.
+- The package does not verify id-token signatures in the browser — validate the id token server-side (or via Firebase) before trusting its claims.
+
+## Notes & caveats
+
+- Web Google sign-in tries One-Tap / FedCM first and falls back to the OAuth2 popup by default (`webFlow: 'auto'`). A dismissed One-Tap rejects with `USER_CANCELLED`; a closed popup with `POPUP_CLOSED_BY_USER`. Google's branded button is available via `renderButton(element)` on the web provider class — it is not a method on the `auth` singleton, so reach it with `import { GoogleAuthProviderWeb } from 'capacitor-auth-manager/providers/web'` and construct the provider yourself.
+- Native consumers compile in package CI. Validate a new version in one app (web + one Android device + one iOS device) before rolling it out widely.
+
+## Related
+
+- [Quick Start](/getting-started/quick-start)
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/linkedin -->
+
+---
+id: linkedin
+title: LinkedIn authentication
+sidebar_label: LinkedIn
+description: Configure and use the LinkedIn provider in capacitor-auth-manager. It runs a manual OAuth code flow with S256 PKCE and fetches the real profile via LinkedIn userinfo.
+---
+
+# LinkedIn authentication
+
+:::caution Not yet available (3.x)
+The LinkedIn provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
+The LinkedIn provider signs users in with a manual OAuth authorization-code flow protected by S256 PKCE. After the code exchange it fetches the real profile from LinkedIn's OpenID Connect `/v2/userinfo` endpoint.
+
+## When you need a backend
+
+A backend is optional. The PKCE-protected code flow can complete in the browser. If your LinkedIn app requires a client secret for the token exchange, keep it server-side — do not ship `clientSecret` in the browser bundle.
+
+## Configuration
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    linkedin: {
+      clientId: 'YOUR_LINKEDIN_CLIENT_ID',
+      redirectUri: 'https://your-app.com/auth/linkedin/callback',
+      scopes: ['openid', 'profile', 'email'],
+    },
+  },
+});
+```
+
+## Options
+
+From the `LinkedInAuthOptions` interface in `src/definitions.ts`:
+
+| Option | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `clientId` | `string` | Yes | LinkedIn app client ID. |
+| `redirectUri` | `string` | Yes | Redirect URI registered with the LinkedIn app. |
+| `clientSecret` | `string` | No | Server-side only — keep out of the browser bundle. |
+| `scopes` | `string[]` | No | OpenID Connect scopes (e.g. `openid`, `profile`, `email`). |
+| `state` | `string` | No | CSRF state value. |
+
+## Sign in
+
+```typescript
+await auth.signIn('linkedin');
+```
+
+## Notes & caveats
+
+- The flow uses S256 PKCE (`code_challenge_method=S256`) generated by the library.
+- The profile is fetched from `https://api.linkedin.com/v2/userinfo`; a network failure there surfaces as a clear error.
+- The library does not verify ID-token signatures in the browser — re-validate server-side if you trust the claims.
+
+## Related
+
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/magic-link -->
+
+---
+id: magic-link
+title: Email magic link authentication
+sidebar_label: Magic Link
+description: "Configure the passwordless email magic link provider in capacitor-auth-manager: a backend you supply sends the link and sign-in completes on its click."
+---
+
+# Email magic link authentication
+
+:::caution Not yet available (3.x)
+The magic-link provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
+The magic link provider is a passwordless flow: a call asks your backend to email a sign-in link, and sign-in completes when the user clicks that link and your app loads the callback page. The library generates the link token, tracks the pending verification (persisted so it survives the redirect), and orchestrates state; your backend delivers the email.
+
+## Backend requirement
+
+This provider needs a backend. The web implementation (`src/providers/web/magic-link-provider.ts`) generates a random token and `POST`s `{ email, magicLink, clientId, template }` to your send-link endpoint, which must email the link to the user. On the callback page load it can optionally verify the token against your verify endpoint (`POST { token, email, clientId }`); without a verify endpoint it completes the sign-in locally from the persisted pending record.
+
+The web provider reads its endpoint URLs from runtime options — `sendLinkUrl` (required), plus optional `verifyUrl`, `clientId`, `redirectUrl`, `emailTemplate`. This runtime config differs from the typed `EmailMagicLinkOptions` interface documented below — supply `sendLinkUrl` so the provider can reach your backend.
+
+## Configuration
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    'magic-link': {
+      endpoint: 'https://your-api.com/magic-link',
+      redirectUrl: 'https://your-app.com/auth/callback',
+    },
+  },
+});
+```
+
+## Options
+
+From the `EmailMagicLinkOptions` interface in `src/definitions.ts`:
+
+| Option | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `endpoint` | `string` | No | Backend endpoint that sends the magic-link email. |
+| `apiKey` | `string` | No | API key for the send endpoint. |
+| `redirectUrl` | `string` | No | URL the magic link points back to (the callback page). |
+| `customEmailTemplate` | `string` | No | Template identifier for the email. |
+| `tokenExpiration` | `number` | No | Link-token lifetime in milliseconds. |
+| `rateLimit` | `{ maxAttempts: number; windowMs: number }` | No | Send-rate limit window. |
+
+## Sign in
+
+Send the link with an `{ email }` credentials object. There is no second `signIn` call — verification completes when the link-click callback page loads and the token (carried in the link URL as `?token=...&provider=magic-link`) is matched against the persisted pending metadata:
+
+```typescript
+await auth.signIn({
+  provider: 'magic-link',
+  credentials: { email: 'user@example.com' },
+});
+```
+
+## Errors
+
+All failures are thrown as `AuthError` with an `AuthErrorCode`:
+
+- `EMAIL_REQUIRED` — email missing.
+- `SEND_LINK_FAILED` — the send-link request failed.
+- `INVALID_TOKEN` / `TOKEN_EXPIRED` — callback verification failed or the link lapsed.
+
+## Related
+
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/microsoft -->
+
+---
+id: microsoft
+title: Microsoft authentication
+sidebar_label: Microsoft
+description: Configure and use the Microsoft provider in capacitor-auth-manager. It runs on MSAL Browser, which must be loaded on the page for sign-in to work.
+---
+
+# Microsoft authentication
+
+:::caution Not yet available (3.x)
+The Microsoft provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
+The Microsoft provider signs users in with the Microsoft Authentication Library (MSAL) for browsers (`@azure/msal-browser`, read from `window.msal`). It drives MSAL's popup / redirect sign-in and silent token acquisition.
+
+## When you need a backend
+
+No backend is required for the browser sign-in itself. MSAL handles the OAuth/OIDC flow against Microsoft Entra ID. Use a backend only if you exchange tokens or call protected downstream APIs server-side.
+
+## Configuration
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    microsoft: {
+      clientId: 'YOUR_APPLICATION_CLIENT_ID',
+      redirectUri: 'https://your-app.com/auth/callback',
+      tenantId: 'common',
+      scopes: ['openid', 'profile', 'email'],
+    },
+  },
+});
+```
+
+## Options
+
+From the `MicrosoftAuthOptions` interface in `src/definitions.ts`:
+
+| Option | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `clientId` | `string` | Yes | Entra ID application (client) ID. |
+| `redirectUri` | `string` | Yes | Redirect URI registered with the app. |
+| `clientSecret` | `string` | No | Server-side flows only — do not embed in the browser. |
+| `tenantId` | `string` | No | Tenant ID (e.g. `common`, `organizations`, or a specific tenant). |
+| `scopes` | `string[]` | No | Scopes to request. |
+| `authority` | `string` | No | Full authority URL override. |
+| `loginHint` | `string` | No | Prefill the account. |
+| `domainHint` | `string` | No | Hint the home tenant/domain. |
+| `prompt` | `'login' \| 'none' \| 'consent' \| 'select_account'` | No | Interaction prompt behavior. |
+| `responseType` | `string` | No | OAuth response type. |
+| `responseMode` | `string` | No | OAuth response mode. |
+| `codeChallenge` | `string` | No | PKCE code challenge. |
+| `codeChallengeMethod` | `string` | No | PKCE challenge method. |
+| `state` | `string` | No | CSRF state value. |
+| `nonce` | `string` | No | OIDC nonce. |
+
+## Sign in
+
+```typescript
+await auth.signIn('microsoft');
+```
+
+## Notes & caveats
+
+- MSAL Browser must be loaded on the page. If `window.msal` is absent, the provider throws: "Microsoft Authentication Library (MSAL) is not loaded. Please include the MSAL script in your HTML."
+- A missing `clientId` raises a `MISSING_CONFIG` error during configuration.
+- The library does not verify ID-token signatures in the browser — re-validate server-side if you rely on the claims.
+
+## Related
+
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/overview -->
+
+---
+id: overview
+title: Provider Overview
+sidebar_label: Overview
+description: Which capacitor-auth-manager providers are enabled today — Google is live on web, iOS, and Android; the other 14 are coming one at a time and throw PROVIDER_NOT_ENABLED.
+---
+
+# Provider overview
+
+`capacitor-auth-manager` is being brought to production **one provider at a time**. As of **3.x, Google is the only enabled provider** — it works on web, iOS, and Android. The code for the other 14 providers lives in the repo but is **un-registered**: calling them throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. Each is re-enabled and verified on device one at a time.
+
+:::caution Only Google is available right now
+Treat every non-Google provider page as a **roadmap reference**, not a working feature. Configuring a non-Google provider and calling `auth.signIn()` with its id throws `AuthErrorCode.PROVIDER_NOT_ENABLED`.
+:::
+
+## Provider status
+
+| Provider | id | Status |
+|---|---|---|
+| **Google** | `google` / `AuthProvider.GOOGLE` | **Enabled** — web (GIS), iOS (GoogleSignIn), Android (GoogleSignIn, Credential Manager fallback) |
+| Apple | `apple` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
+| Microsoft | `microsoft` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
+| Facebook | `facebook` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
+| GitHub | `github` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
+| Slack | `slack` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
+| LinkedIn | `linkedin` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
+| Firebase | `firebase` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
+| Email + Password | `email-password` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
+| Username + Password | `username_password` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
+| Phone + Password | `phone_password` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
+| Email Code (OTP) | `email_code` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
+| SMS (OTP) | `sms` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
+| Magic Link | `magic-link` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
+| Biometric | `biometric` | ⏳ Coming — `PROVIDER_NOT_ENABLED` |
+
+The id is the exact string you use as the key in `auth.configure({ providers: { ... } })` and pass to `auth.signIn()`. Some planned ids use underscores (`username_password`, `phone_password`, `email_code`) — match them exactly, since the config lookup is an exact match. The recommended form is the `AuthProvider` enum (e.g. `AuthProvider.GOOGLE`).
+
+## Google: the same call on every platform
+
+`auth.signIn(AuthProvider.GOOGLE)` dispatches natively per platform and returns a Google credential with `result.credential.idToken` populated on web, iOS, and Android — which you hand to Firebase via `signInWithCredential`. See the [Google provider page](/providers/google) for configuration, native setup, the per-platform token table, and the migration from `@codetrix-studio/capacitor-google-auth`.
+
+## Roadmap (not yet available)
+
+These pages document each provider's intended shape for when it is enabled. Until then they throw `PROVIDER_NOT_ENABLED`:
+
+- OAuth / social: [Apple](/providers/apple) · [Microsoft](/providers/microsoft) · [Facebook](/providers/facebook) · [GitHub](/providers/github) · [Slack](/providers/slack) · [LinkedIn](/providers/linkedin) · [Firebase](/providers/firebase)
+- Password: [Email](/providers/email-password) · [Username](/providers/username-password) · [Phone](/providers/phone-password)
+- Passwordless: [Email code](/providers/email-code) · [SMS](/providers/sms) · [Magic link](/providers/magic-link)
+- [Biometric](/providers/biometric)
+
+## Related
+
+- [Google provider](/providers/google)
+- [Configuration](/getting-started/configuration)
+- [API reference](/api/auth-singleton)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/phone-password -->
+
+---
+id: phone-password
+title: Phone and password authentication
+sidebar_label: Phone + Password
+description: "Configure the phone number and password provider in capacitor-auth-manager: it verifies credentials against a backend you supply and orchestrates state."
+---
+
+# Phone and password authentication
+
+:::caution Not yet available (3.x)
+The phone-and-password provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
+The phone and password provider signs users in with a phone number and password, verified by a backend you operate. It optionally supports an SMS phone-verification step before completing sign-in. The library orchestrates the requests; it is not the credential store.
+
+## Backend requirement
+
+This provider needs a backend. The web implementation (`src/providers/web/phone-password-provider.ts`) `POST`s `{ phoneNumber, password, clientId }` to your sign-in endpoint and expects a JSON body with `uid`, `accessToken`, and `refreshToken`. A `401` becomes `INVALID_CREDENTIALS`; a `403` becomes `PHONE_NOT_VERIFIED`.
+
+The web provider reads its endpoint URLs from runtime options — `signInUrl` and `signUpUrl` (required), plus optional `verifyPhoneUrl`, `sendVerificationUrl`, `refreshTokenUrl`, and `resetPasswordUrl`. This runtime config (which also includes `countryCode`, `requirePhoneVerification`, `passwordStrength`) differs from the typed `PhonePasswordOptions` interface documented below — supply `signInUrl` and `signUpUrl` so the provider can reach your backend.
+
+## Configuration
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    phone_password: {
+      requirePhoneVerification: true,
+      phoneNumberFormat: 'E164',
+    },
+  },
+});
+```
+
+The config key `phone_password` matches the `AuthProvider.PHONE_PASSWORD` enum value; the hyphenated `phone-password` resolves to the same provider. Use whichever form consistently in both `configure()` and `signIn()`.
+
+## Options
+
+From the `PhonePasswordOptions` interface in `src/definitions.ts`:
+
+| Option | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `strengthRequirements` | `PasswordStrengthRequirements` | No | Declarative password rules. |
+| `allowPasswordReset` | `boolean` | No | Whether the password-reset flow is offered. |
+| `requirePhoneVerification` | `boolean` | No | Require an SMS code step before sign-in completes. |
+| `phoneNumberFormat` | `'E164' \| 'NATIONAL' \| 'INTERNATIONAL'` | No | Expected phone-number format. |
+
+## Sign in
+
+Pass a `PhonePasswordCredentials` object (`{ phoneNumber, password }`) under `credentials`:
+
+```typescript
+await auth.signIn({
+  provider: 'phone_password',
+  credentials: { phoneNumber: '+1234567890', password: 'secure-password' },
+});
+```
+
+When phone verification is required, include the SMS `code` in the credentials to complete the verification step.
+
+## Errors
+
+All failures are thrown as `AuthError` with an `AuthErrorCode`:
+
+- `CREDENTIALS_REQUIRED` — phone number or password missing.
+- `PHONE_NOT_VERIFIED` — backend returned `403`.
+- `NO_PENDING_VERIFICATION` / `CODE_EXPIRED` / `INVALID_CODE` — verification-step failures.
+
+## Related
+
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/slack -->
+
+---
+id: slack
+title: Slack authentication
+sidebar_label: Slack
+description: Configure and use the Slack provider in capacitor-auth-manager. It runs a manual OAuth code flow with S256 PKCE and fetches the real profile via Slack OpenID Connect.
+---
+
+# Slack authentication
+
+:::caution Not yet available (3.x)
+The Slack provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
+The Slack provider signs users in with a manual OAuth authorization-code flow protected by S256 PKCE. After the code exchange it fetches the real profile from Slack's OpenID Connect `openid.connect.userInfo` endpoint.
+
+## When you need a backend
+
+A backend is optional. The PKCE-protected code flow can complete in the browser. If your Slack app configuration requires a client secret for the token exchange, keep that secret on a server — do not embed `clientSecret` in the browser bundle.
+
+## Configuration
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    slack: {
+      clientId: 'YOUR_SLACK_CLIENT_ID',
+      redirectUri: 'https://your-app.com/auth/slack/callback',
+      scopes: ['openid', 'profile', 'email'],
+      teamId: 'OPTIONAL_TEAM_ID',
+    },
+  },
+});
+```
+
+## Options
+
+From the `SlackAuthOptions` interface in `src/definitions.ts`:
+
+| Option | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `clientId` | `string` | Yes | Slack app client ID. |
+| `redirectUri` | `string` | Yes | Redirect URI registered with the Slack app. |
+| `clientSecret` | `string` | No | Server-side only — keep out of the browser bundle. |
+| `scopes` | `string[]` | No | OpenID Connect scopes to request (e.g. `openid`, `profile`, `email`). |
+| `teamId` | `string` | No | Restrict sign-in to a specific Slack workspace. |
+| `state` | `string` | No | CSRF state value. |
+| `nonce` | `string` | No | OIDC nonce. |
+
+## Sign in
+
+```typescript
+await auth.signIn('slack');
+```
+
+## Notes & caveats
+
+- The flow uses S256 PKCE (`code_challenge_method=S256`) generated by the library.
+- The profile is fetched from `https://slack.com/api/openid.connect.userInfo`; a network failure there surfaces as a clear error.
+- `teamId` limits sign-in to one workspace; omit it to allow any workspace the app is installed in.
+- The library does not verify ID-token signatures in the browser — re-validate server-side if you trust the claims.
+
+## Related
+
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/sms -->
+
+---
+id: sms
+title: SMS code (OTP) authentication
+sidebar_label: SMS
+description: "Configure the passwordless SMS (OTP) provider in capacitor-auth-manager: a backend you supply sends the code and verifies it in a two-step flow."
+---
+
+# SMS code (OTP) authentication
+
+:::caution Not yet available (3.x)
+The SMS (OTP) provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
+The SMS provider is a passwordless, two-step flow: the first call asks your backend to text a one-time code to a phone number, and the second call submits that code for verification. The library tracks the pending verification (metadata only, persisted across reloads) and orchestrates state; your backend integrates with an SMS service (Twilio, AWS SNS, etc.) to send and validate the code.
+
+## Backend requirement
+
+This provider needs a backend. The web implementation (`src/providers/web/sms-provider.ts`) `POST`s `{ phoneNumber, clientId, codeLength }` to your send-code endpoint and expects a `sessionId` back, then `POST`s `{ phoneNumber, code, sessionId, clientId }` to your verify endpoint and expects a user (`uid`, optional tokens). A `401` on verify becomes `INVALID_CODE`. The code is never stored client-side — only non-secret metadata (session id, expiry, attempt count) is persisted.
+
+The web provider reads its endpoint URLs from runtime options — `sendCodeUrl` and `verifyCodeUrl` (required), plus optional `clientId`, `countryCode`, `codeLength`, `resendDelay`. This runtime config differs from the typed `SmsAuthOptions` interface documented below — supply `sendCodeUrl` and `verifyCodeUrl` so the provider can reach your backend.
+
+## Configuration
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    sms: {
+      provider: 'twilio',
+      twilioConfig: {
+        accountSid: 'YOUR_SID',
+        authToken: 'YOUR_TOKEN',
+        fromNumber: '+1234567890',
+      },
+      codeLength: 6,
+    },
+  },
+});
+```
+
+## Options
+
+From the `SmsAuthOptions` interface in `src/definitions.ts`:
+
+| Option | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `provider` | `'twilio' \| 'firebase' \| 'custom'` | Yes | Which SMS backend strategy to use. |
+| `twilioConfig` | `{ accountSid; authToken; fromNumber }` | No | Twilio credentials (keep secrets server-side). |
+| `firebaseConfig` | `{ apiKey; projectId }` | No | Firebase phone-auth config. |
+| `customConfig` | `{ endpoint; apiKey?; headers? }` | No | Custom send/verify endpoint config. |
+| `codeLength` | `number` | No | Number of digits in the code. |
+| `codeExpiration` | `number` | No | Code lifetime in milliseconds. |
+| `maxAttempts` | `number` | No | Allowed verification attempts. |
+| `testMode` | `boolean` | No | Use test phone numbers instead of real sends. |
+| `testPhoneNumbers` | `Record<string, string>` | No | Phone-number-to-code map for test mode. |
+
+## Sign in
+
+The flow is two calls with `SmsCodeCredentials` (`{ phoneNumber, code? }`):
+
+```typescript
+// Step 1 — request the code (no `code`)
+await auth.signIn({ provider: 'sms', credentials: { phoneNumber: '+1234567890' } });
+
+// Step 2 — verify the code
+await auth.signIn({
+  provider: 'sms',
+  credentials: { phoneNumber: '+1234567890', code: '123456' },
+});
+```
+
+## Errors
+
+All failures are thrown as `AuthError` with an `AuthErrorCode`:
+
+- `PHONE_REQUIRED` — phone number missing.
+- `INVALID_CODE` / `CODE_EXPIRED` — verification failed or the code lapsed.
+- `NO_PENDING_VERIFICATION` — verifying without a sent code.
+- `TOO_MANY_ATTEMPTS` / `RESEND_DELAY` — attempt or resend throttling.
+
+## Related
+
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/providers/username-password -->
+
+---
+id: username-password
+title: Username and password authentication
+sidebar_label: Username + Password
+description: "Configure the username and password provider in capacitor-auth-manager: it sends credentials to a backend you supply that verifies and persists them."
+---
+
+# Username and password authentication
+
+:::caution Not yet available (3.x)
+The username-and-password provider is **not enabled yet**. Only **Google** is live right now — calling `auth.signIn()` with this provider throws `AuthErrorCode.PROVIDER_NOT_ENABLED`. The page below documents its intended shape for when it is re-enabled. See the [provider overview](/providers/overview) and the [Google provider](/providers/google).
+:::
+
+The username and password provider signs users in by sending a username/password pair to a backend you operate, which verifies the credentials and returns a user plus tokens. The library orchestrates the request and the resulting auth state; it does not store or validate credentials itself.
+
+## Backend requirement
+
+This provider needs a backend. The web implementation (`src/providers/web/username-password-provider.ts`) issues a `POST` to your `/auth/signin` endpoint with `{ username, password, clientId }` and expects a JSON body with at least `uid`, `accessToken`, and `refreshToken`. A `401` becomes `INVALID_CREDENTIALS`. The other operations call `/auth/signout`, `/auth/refresh`, `/auth/update-password`, and `/auth/check-username` (optional username-uniqueness check).
+
+The web provider reads the base URL from an `apiUrl` field on the provider options. The runtime config it actually reads (`apiUrl`, `clientId`, `usernameRequirements`, `passwordRequirements`, `allowSignUp`) differs from the typed `UsernamePasswordOptions` interface documented below — supply `apiUrl` so the provider can reach your backend.
+
+## Configuration
+
+```typescript
+import { auth } from 'capacitor-auth-manager';
+
+auth.configure({
+  providers: {
+    'username-password': {
+      usernameRequirements: {
+        minLength: 3,
+        maxLength: 20,
+      },
+    },
+  },
+});
+```
+
+## Options
+
+From the `UsernamePasswordOptions` interface in `src/definitions.ts`:
+
+| Option | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `strengthRequirements` | `PasswordStrengthRequirements` | No | Declarative password rules (min/max length, char-class requirements, custom regex). |
+| `allowPasswordReset` | `boolean` | No | Whether the password-reset flow is offered. |
+| `usernameRequirements` | `UsernameRequirements` | No | Username rules: `minLength`, `maxLength`, `allowedCharacters`, `preventProfanity`, and a `uniqueCheck` endpoint. |
+| `caseSensitive` | `boolean` | No | Treat usernames as case-sensitive. |
+
+## Sign in
+
+Pass a `UsernamePasswordCredentials` object (`{ username, password }`) under `credentials`:
+
+```typescript
+await auth.signIn({
+  provider: 'username-password',
+  credentials: { username: 'johndoe', password: 'secure-password' },
+});
+```
+
+Use the same `'username-password'` key in `configure()` and `signIn()` — the configuration lookup is an exact string match.
+
+## Errors
+
+All failures are thrown as `AuthError` with an `AuthErrorCode`:
+
+- `CREDENTIALS_REQUIRED` — username or password missing.
+- `INVALID_CREDENTIALS` — backend returned `401`.
+- `USERNAME_ALREADY_EXISTS` — sign-up against a taken username (`409`).
+
+## Related
+
+- [Configuration](/getting-started/configuration)
+- [auth singleton API](/api/auth-singleton)
+- [Providers overview](/providers/overview)

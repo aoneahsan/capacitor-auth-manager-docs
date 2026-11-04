@@ -1,0 +1,217 @@
+{
+  "package": "capacitor-auth-manager",
+  "version": "3.1.1",
+  "guide": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/integration/ai.md",
+  "pages": [
+    {
+      "id": "about-the-author",
+      "title": "About the Author",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/about-the-author",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/about-the-author.md"
+    },
+    {
+      "id": "api/auth-singleton",
+      "title": "The auth singleton",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/api/auth-singleton",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/api/auth-singleton.md"
+    },
+    {
+      "id": "api/errors",
+      "title": "Errors and error codes",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/api/errors",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/api/errors.md"
+    },
+    {
+      "id": "api/storage",
+      "title": "Storage backends",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/api/storage",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/api/storage.md"
+    },
+    {
+      "id": "api/types",
+      "title": "Types and interfaces",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/api/types",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/api/types.md"
+    },
+    {
+      "id": "changelog",
+      "title": "Changelog",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/changelog",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/changelog.md"
+    },
+    {
+      "id": "faq",
+      "title": "FAQ",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/faq",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/faq.md"
+    },
+    {
+      "id": "frameworks/angular",
+      "title": "Angular service",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/angular",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/frameworks/angular.md"
+    },
+    {
+      "id": "frameworks/react",
+      "title": "React hooks",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/react",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/frameworks/react.md"
+    },
+    {
+      "id": "frameworks/vanilla-js",
+      "title": "Vanilla JavaScript",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/vanilla-js",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/frameworks/vanilla-js.md"
+    },
+    {
+      "id": "frameworks/vue",
+      "title": "Vue 3 composables",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/frameworks/vue",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/frameworks/vue.md"
+    },
+    {
+      "id": "getting-started/configuration",
+      "title": "Configuration",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/configuration",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/getting-started/configuration.md"
+    },
+    {
+      "id": "getting-started/installation",
+      "title": "Installation",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/installation",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/getting-started/installation.md"
+    },
+    {
+      "id": "getting-started/quick-start",
+      "title": "Quick Start",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/quick-start",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/getting-started/quick-start.md"
+    },
+    {
+      "id": "integration/ai",
+      "title": "AI integration guide",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/integration/ai",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/integration/ai.md"
+    },
+    {
+      "id": "intro",
+      "title": "Capacitor Auth Manager",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/intro",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/intro.md"
+    },
+    {
+      "id": "platforms/android",
+      "title": "Android platform",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/platforms/android",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/platforms/android.md"
+    },
+    {
+      "id": "platforms/ios",
+      "title": "iOS platform",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/platforms/ios",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/platforms/ios.md"
+    },
+    {
+      "id": "platforms/web",
+      "title": "Web platform",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/platforms/web",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/platforms/web.md"
+    },
+    {
+      "id": "providers/apple",
+      "title": "Apple authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/apple",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/apple.md"
+    },
+    {
+      "id": "providers/biometric",
+      "title": "Biometric authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/biometric",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/biometric.md"
+    },
+    {
+      "id": "providers/email-code",
+      "title": "Email code (OTP) authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/email-code",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/email-code.md"
+    },
+    {
+      "id": "providers/email-password",
+      "title": "Email and password authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/email-password",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/email-password.md"
+    },
+    {
+      "id": "providers/facebook",
+      "title": "Facebook authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/facebook",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/facebook.md"
+    },
+    {
+      "id": "providers/firebase",
+      "title": "Firebase authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/firebase",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/firebase.md"
+    },
+    {
+      "id": "providers/github",
+      "title": "GitHub authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/github",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/github.md"
+    },
+    {
+      "id": "providers/google",
+      "title": "Google authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/google",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/google.md"
+    },
+    {
+      "id": "providers/linkedin",
+      "title": "LinkedIn authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/linkedin",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/linkedin.md"
+    },
+    {
+      "id": "providers/magic-link",
+      "title": "Email magic link authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/magic-link",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/magic-link.md"
+    },
+    {
+      "id": "providers/microsoft",
+      "title": "Microsoft authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/microsoft",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/microsoft.md"
+    },
+    {
+      "id": "providers/overview",
+      "title": "Provider Overview",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/overview",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/overview.md"
+    },
+    {
+      "id": "providers/phone-password",
+      "title": "Phone and password authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/phone-password",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/phone-password.md"
+    },
+    {
+      "id": "providers/slack",
+      "title": "Slack authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/slack",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/slack.md"
+    },
+    {
+      "id": "providers/sms",
+      "title": "SMS code (OTP) authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/sms",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/sms.md"
+    },
+    {
+      "id": "providers/username-password",
+      "title": "Username and password authentication",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/providers/username-password",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/providers/username-password.md"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcapacitor_auth_manager_docs||=[]).push([[9647],{7121(a,e,r){r.r(e),r.d(e,{default:()=>d});r(6540);var s=r(4164),c=r(7559),t=r(5500),u=r(2831),n=r(9139),o=r(4848);function d(a){return(0,o.jsx)(t.e3,{className:(0,s.A)(c.G.wrapper.docsPages),children:(0,o.jsx)(n.A,{children:(0,u.v)(a.route.routes)})})}}}]);
