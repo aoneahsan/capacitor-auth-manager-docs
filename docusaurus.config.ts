@@ -34,6 +34,7 @@ const config: Config = {
   // SoftwareSourceCode) help Google Rich Results, Perplexity, ChatGPT, and
   // Claude extract structured entity data when citing this documentation.
   headTags: [
+    { tagName: 'meta', attributes: { name: 'yandex-verification', content: 'bfb02722189028cf' } },
     {
       tagName: 'meta',
       attributes: { name: 'application-name', content: 'Capacitor Auth Manager Docs' },
