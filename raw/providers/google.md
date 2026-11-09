@@ -57,16 +57,39 @@ You can also set the Google options in `capacitor.config` under the plugin block
 | `filterByAuthorizedAccounts` | Android | Credential Manager returning-user UX. |
 | `autoSelectEnabled` | Android | One-tap auto-select for returning users. |
 | `nonce` | web, iOS, Android | Bind the request to an id-token `nonce` claim (validated). |
-| `webFlow` | web | `'auto'` (default: One-Tap, then the OAuth2 popup if One-Tap is not shown) · `'one-tap'` · `'popup'`. Also accepted per call in `signIn({ options })`. |
+| `webFlow` | web | `'auto'` (default: One-Tap, then the OAuth2 popup if One-Tap is not shown) · `'one-tap'` · `'button'` (wait for the rendered Google button's ID token) · `'popup'`. Also accepted per call in `signIn({ options })`. |
 | `androidFlow` | Android | `'auto'` (default since 3.1.0: GoogleSignIn, then Credential Manager if it fails for any reason other than a cancel) · `'legacy'` · `'credential-manager'` · `'bottom-sheet'` · `'button'`. Also accepted per call. |
 
 ## Sign in
 
 ```typescript
 const result = await auth.signIn(AuthProvider.GOOGLE);
-const idToken = result.credential.idToken;         // One-Tap (web), iOS, Android
+const idToken = result.credential.idToken;         // One-Tap or the rendered button (web), iOS, Android
 const accessToken = result.credential.accessToken; // web popup fallback, iOS
 ```
+
+## Google's own button (web)
+
+When One-Tap is in its cooldown window, render Google's official button yourself. `renderButton` lives on the web
+provider class, not on the `auth` singleton, so construct it directly:
+
+```ts
+import { GoogleAuthProviderWeb } from 'capacitor-auth-manager/providers/web';
+
+const google = new GoogleAuthProviderWeb({ clientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID });
+// renderButton initializes the provider on demand; options default to { theme: 'outline', size: 'large' }
+await google.renderButton(document.getElementById('google-btn')!);
+// Start waiting before the user selects Google's button:
+const credentialPromise = google.signIn({ options: { webFlow: 'button' } });
+// After the user selects it:
+const result = await credentialPromise;
+```
+
+The button returns an `idToken`. A `button` sign-in doesn't open One-Tap or the OAuth2 popup, and a One-Tap result
+that arrives late can't complete it. The wait lasts up to two minutes; `signOut()` or `dispose()` cancels it. If it
+ends before the user selects the button, start another `button` sign-in.
+
+To check it, select the button and confirm `result.credential.idToken` is set; no One-Tap prompt should appear.
 
 ## Hand the credential to Firebase (identical on every platform)
 
@@ -93,7 +116,7 @@ await signInWithCredential(
   credential: {
     providerId: 'google.com',
     signInMethod: 'google.com',
-    idToken?: string,        // web One-Tap, iOS, Android
+    idToken?: string,        // web One-Tap or rendered button, iOS, Android
     accessToken?: string,    // web popup and iOS; not returned by Android sign-in
     serverAuthCode?: string, // iOS when serverClientId + offline access; exchange on YOUR server only
   },
@@ -102,7 +125,7 @@ await signInWithCredential(
 
 Per-platform token availability (honest):
 
-- **Web** (GIS): One-Tap returns an **`idToken`**; the OAuth2 popup fallback returns an **`accessToken`** (and the Google profile). Firebase accepts either — `GoogleAuthProvider.credential(idToken ?? null, accessToken)`. See [Web platform](/platforms/web).
+- **Web** (GIS): One-Tap and Google's rendered button return an **`idToken`**; the OAuth2 popup fallback returns an **`accessToken`** (and the Google profile). Firebase accepts either — `GoogleAuthProvider.credential(idToken ?? null, accessToken)`. See [Web platform](/platforms/web).
 - **iOS** (GoogleSignIn): `idToken` + `accessToken` (+ `serverAuthCode` when `serverClientId` is set).
 - **Android** (GoogleSignIn, Credential Manager fallback): returns **`idToken`** — from GoogleSignIn's account chooser, or from Credential Manager when GoogleSignIn fails (`androidFlow: 'auto'`). `accessToken` / `serverAuthCode` require the separate Google Authorization API and are not returned by the sign-in call (planned).
 

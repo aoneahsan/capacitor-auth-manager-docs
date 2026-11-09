@@ -25,9 +25,9 @@ Google is the only enabled provider. Other provider ids throw `AuthErrorCode.PRO
 
 | What | Detail |
 |---|---|
-| Mechanism | Google Identity Services (GIS): One-Tap / FedCM id-token flow, with an OAuth2 popup fallback |
-| Backend required? | No — no client secret needed for either flow |
-| Returns | One-Tap: `idToken`. Popup: `accessToken` (+ the Google profile). Never both from one call. |
+| Mechanism | Google Identity Services (GIS): One-Tap / FedCM and Google's rendered button return an ID token, with an OAuth2 popup fallback |
+| Backend required? | No. None of the three flows needs a client secret. |
+| Returns | One-Tap and the rendered button: `idToken`. Popup: `accessToken` (+ the Google profile). Never both from one call. |
 | Firebase handoff | `signInWithCredential(getAuth(), GoogleAuthProvider.credential(idToken ?? null, accessToken))` |
 
 ### Which flow runs — `webFlow`
@@ -36,6 +36,7 @@ Google is the only enabled provider. Other provider ids throw `AuthErrorCode.PRO
 |---|---|
 | `'auto'` (default) | Try One-Tap / FedCM. If the browser does not display it (cooldown, FedCM opt-out, third-party-cookie settings) fall back to the OAuth2 popup. |
 | `'one-tap'` | One-Tap only. A suppressed prompt rejects with `POPUP_BLOCKED`; a user dismissal rejects with `USER_CANCELLED`. |
+| `'button'` | Waits for a click on Google's rendered button and returns its `idToken`. It doesn't open One-Tap or the popup, and a late One-Tap result can't complete it. After two minutes it rejects with `POPUP_BLOCKED`; `signOut()` or `dispose()` cancels it sooner. |
 | `'popup'` | The OAuth2 token popup only — deterministic, works from any click handler. Closing it rejects with `POPUP_CLOSED_BY_USER`. |
 
 Set it once in the provider options or per call:
@@ -45,9 +46,9 @@ auth.configure({ providers: { [AuthProvider.GOOGLE]: { clientId, webFlow: 'auto'
 await auth.signIn({ provider: AuthProvider.GOOGLE, options: { webFlow: 'popup' } });
 ```
 
-For Google's branded button, call `renderButton(element)` on the web provider class — import it with `import { GoogleAuthProviderWeb } from 'capacitor-auth-manager/providers/web'` and construct it yourself, since it is not exposed on the `auth` singleton. It shares the One-Tap credential callback.
+For Google's branded button, call `renderButton(element)` on the web provider class. Import it with `import { GoogleAuthProviderWeb } from 'capacitor-auth-manager/providers/web'` and construct it yourself, since it isn't on the `auth` singleton. Then start `signIn({ options: { webFlow: 'button' } })` before the user selects the button; the button's credential completes that call.
 
-Add your dev and production origins (for example `http://localhost:5931`) to the Web OAuth client's **Authorized JavaScript origins** in Google Cloud — both flows check it.
+Add your dev and production origins (for example `http://localhost:5931`) to the Web OAuth client's **Authorized JavaScript origins** in Google Cloud — every flow checks it.
 
 ## Honest limitation: ID tokens are not verified client-side
 

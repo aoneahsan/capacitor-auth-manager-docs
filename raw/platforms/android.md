@@ -49,7 +49,7 @@ Hand `idToken` to Firebase with `signInWithCredential(getAuth(), GoogleAuthProvi
 
 ## Native source
 
-The Google native path lives in `GoogleAuthProvider.java` on top of shared scaffolding — `BaseAuthProvider.java`, `ProviderFactory.java`, `AuthStorage.java`, `AuthLogger.java`, and the plugin entry points `CapacitorAuthManager.java` and `CapacitorAuthManagerPlugin.java`. Package CI compiles native consumers. Validate real Google sign-in with your OAuth clients on a device before rollout.
+The Google native path lives in `GoogleAuthProvider.java` on top of shared scaffolding — `BaseAuthProvider.java`, `ProviderFactory.java`, `AuthStorage.java`, `AuthLogger.java`, and the plugin entry points `CapacitorAuthManager.java` and `CapacitorAuthManagerPlugin.java`. Local release checks compile native consumers. Verify sign-in with your OAuth clients on a device before rollout.
 
 ## Secure storage
 

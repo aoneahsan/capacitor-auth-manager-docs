@@ -129,6 +129,7 @@ For authenticated backend requests, get a **Firebase** ID token from `firebaseAu
 |---|---|
 | Web `webFlow: 'popup'` | `accessToken`; no `idToken` or refresh token |
 | Web `webFlow: 'one-tap'` | `idToken`; no access token |
+| Web `webFlow: 'button'` | `idToken` from a rendered Google button; no access token or One-Tap prompt |
 | Web `webFlow: 'auto'` (default) | One-Tap ID token or popup access token; suppression may require another click to open a popup |
 | Android | `idToken`; no access token/server auth code from the sign-in call |
 | iOS | `idToken`, `accessToken`, optional `serverAuthCode` when configured |

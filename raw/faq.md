@@ -17,7 +17,7 @@ It does the same job — native Google sign-in returning an id token you hand to
 
 ## Do I need Capacitor to use this?
 
-No. `capacitor-auth-manager` runs in any web app — Google sign-in there uses Google Identity Services. Capacitor is optional; you add `@capacitor/core` and run `npx cap sync` only when you ship an iOS or Android build.
+`capacitor-auth-manager` runs in a web-only app, but `@capacitor/core` is a required peer even there. A native Capacitor project and `cap sync` are needed only for Android or iOS.
 
 ## Does it verify ID tokens for me?
 
@@ -25,7 +25,7 @@ No. The library validates an OIDC `nonce` and the ID token's `exp` claim, but it
 
 ## Does Google sign-in need a backend?
 
-No. Both Google Identity Services web flows require no client secret: One-Tap returns an ID token and popup returns an access token. On iOS (GoogleSignIn) and Android (Credential Manager) the native SDK handles it. You only involve a server if you opt into a `serverAuthCode` (iOS) and exchange it for refresh tokens — and that exchange must happen on your server, never in the app/browser.
+Google's web flows need no client secret: One-Tap returns an ID token and popup returns an access token. On Android, GoogleSignIn runs first with a Credential Manager fallback. If you use an iOS `serverAuthCode`, exchange it on your backend, never in the app or browser.
 
 ## Do I need a context provider or wrapper component?
 
@@ -41,7 +41,7 @@ By default on web, in `localStorage`, which any XSS or third-party script on the
 
 ## Does Google sign-in work the same on web, iOS, and Android?
 
-Yes — that's the point. The same `auth.signIn(AuthProvider.GOOGLE)` call dispatches to Google Identity Services (web), GoogleSignIn (iOS), or GoogleSignIn with a Credential Manager fallback (Android), and returns an ID token on native/One-Tap or an access token on web popup. Firebase handoff must use both credential fields. Native consumer builds run in package CI — validate a new version on a real device before rolling it out widely.
+Yes. The same `auth.signIn(AuthProvider.GOOGLE)` call dispatches to Google Identity Services (web), GoogleSignIn (iOS), or GoogleSignIn with a Credential Manager fallback (Android), and returns an ID token on native/One-Tap or an access token on web popup. Firebase handoff must use whichever credential field is present. Local release checks compile native consumers; verify sign-in with your OAuth clients on a device before rollout.
 
 ## What happens when Google One-Tap does not show up?
 
