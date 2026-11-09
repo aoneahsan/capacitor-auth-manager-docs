@@ -1,6 +1,6 @@
 # Package inventory
 
-Last Updated: 2026-10-20
+Last Updated: 2026-11-09
 
 Package manager: Yarn 4.18.1. React and ReactDOM resolve to 19.3.1; Docusaurus remains current at 3.10.2.
 
@@ -9,6 +9,7 @@ Package manager: Yarn 4.18.1. React and ReactDOM resolve to 19.3.1; Docusaurus r
 | `@docusaurus/core` | `^3.10.2` | Documentation framework |
 | `@docusaurus/preset-classic` | `^3.10.2` | Documentation framework |
 | `@docusaurus/theme-mermaid` | `^3.10.2` | Documentation framework |
+| `@fontsource/inter` | `^5.3.0` | Bundled Latin font assets for documentation text |
 | `@mdx-js/react` | `^3.1.1` | Markdown components |
 | `clsx` | `^2.1.1` | CSS class names |
 | `prism-react-renderer` | `^2.4.1` | Code highlighting |

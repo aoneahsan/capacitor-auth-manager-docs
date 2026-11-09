@@ -24,8 +24,8 @@ into this public repository.
 Use the manifest's Yarn 4.18.1 with Node 24+. Run `yarn install --immutable`, `yarn typecheck`,
 then `yarn build`. The production build validates Docusaurus links and generates AI-readable
 output. Preview that exact build at desktop and mobile widths, including a direct docs route,
-navigation and browser console, before pushing `main`: `.github/workflows/deploy-pages.yml`
-auto-publishes GitHub Pages. After the run succeeds, verify the live custom domain. Do not use
+navigation and browser console, before pushing `main`. Deploy GitHub Pages manually after local
+gates, then verify the live custom domain. Do not use
 npm or pnpm locally, and do not treat a package compile or docs build as proof of a real Google
 OAuth flow.
 

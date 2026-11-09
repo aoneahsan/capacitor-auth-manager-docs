@@ -37,7 +37,7 @@ The id is the exact string you use as the key in `auth.configure({ providers: { 
 
 ## Google: the same call on every platform
 
-`auth.signIn(AuthProvider.GOOGLE)` dispatches natively per platform and returns a Google credential with `result.credential.idToken` populated on web, iOS, and Android — which you hand to Firebase via `signInWithCredential`. See the [Google provider page](/providers/google) for configuration, native setup, the per-platform token table, and the migration from `@codetrix-studio/capacitor-google-auth`.
+`auth.signIn(AuthProvider.GOOGLE)` dispatches per platform. On web, One-Tap can return an `idToken`; the popup returns an `accessToken` instead. Native sign-in returns an `idToken`. Pass whichever field is present to your app's Firebase or backend handoff. See the [Google provider page](/providers/google) for configuration, native setup, the per-platform token table, and the migration from `@codetrix-studio/capacitor-google-auth`.
 
 ## Roadmap (not yet available)
 

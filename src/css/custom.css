@@ -1,3 +1,8 @@
+@import '@fontsource/inter/latin-400.css';
+@import '@fontsource/inter/latin-500.css';
+@import '@fontsource/inter/latin-600.css';
+@import '@fontsource/inter/latin-700.css';
+
 /**
  * Capacitor Auth Manager — brand palette
  * Primary: indigo (identity / security)
@@ -33,7 +38,7 @@
 }
 
 /* Dark mode overrides — keep brand recognisable, raise contrast on accent */
-[data-theme='dark'] {
+html[data-theme='dark'] {
   --ifm-color-primary: #818cf8;
   --ifm-color-primary-dark: #6366f1;
   --ifm-color-primary-darker: #5457ee;
