@@ -251,6 +251,7 @@ const config: Config = {
             { label: 'npm package', href: NPM_URL },
             { label: 'Source repository', href: REPO_URL },
             { label: 'Docs source', href: DOCS_REPO_URL },
+            { label: 'Privacy Policy', to: '/privacy' },
           ],
         },
         {

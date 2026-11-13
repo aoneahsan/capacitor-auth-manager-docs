@@ -22,7 +22,8 @@ yarn serve        # preview the built site (http://localhost:5963)
 
 ## Deployment
 
-GitHub Pages publishes through `.github/workflows/deploy-pages.yml` on every push to `main`.
+GitHub Pages serves the `gh-pages` branch. There is no GitHub Actions workflow: after `yarn typecheck`, `yarn build`
+and a desktop/phone check of the built site, the contents of `build/` are committed to `gh-pages` by hand and pushed.
 `static/CNAME` pins the existing HTTPS custom domain. No Firebase Hosting project is used.
 
 ## AI documentation
