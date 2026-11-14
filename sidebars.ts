@@ -98,6 +98,26 @@ const sidebars: SidebarsConfig = {
     'changelog',
     {
       type: 'category',
+      label: 'White-label & licensing',
+      collapsed: true,
+      link: {
+        type: 'generated-index',
+        slug: '/licensing',
+        title: 'White-label & licensing',
+        description:
+          'Capacitor Auth Manager published under your npm scope: what a managed build contains, setup, updates, verification and questions.',
+      },
+      items: [
+        'licensing/overview',
+        'licensing/delivery',
+        'licensing/setup',
+        'licensing/updates',
+        'licensing/verify',
+        'licensing/faq',
+      ],
+    },
+    {
+      type: 'category',
       label: 'About',
       collapsed: true,
       items: ['about-the-author'],

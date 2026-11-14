@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify a license (dummy)</title>
+<link rel="stylesheet" href="dummy.css">
+</head>
+<body data-page="verify">
+<header class="nav" id="shell-nav"></header>
+<main>
+  <section class="hero"><div class="wrap">
+    <p class="eyebrow">Verify</p>
+    <h1>Check a Capacitor Auth Manager license</h1>
+    <p class="lead">Every licensed build has a key that starts with <code>CAPAUTH-WL-</code>, and its docs domain serves
+      a license file. Check either one here. Verification is run by our licensing service.</p>
+  </div></section>
+  <section class="block"><div class="wrap split">
+    <div>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" aria-selected="true" data-mode="key">By key</button>
+        <button type="button" role="tab" aria-selected="false" data-mode="domain">By domain</button>
+      </div>
+      <form class="f" id="verify">
+        <label id="verify-label">License key<input id="verify-input" required placeholder="CAPAUTH-WL-…" autocomplete="off"></label>
+        <div class="actions"><button class="btn btn-primary" type="submit">Check</button></div>
+      </form>
+      <div class="status" id="verify-out" hidden role="status" style="margin-top:1rem"></div>
+    </div>
+    <div class="note">
+      <h2 style="margin-top:0">What the result means</h2>
+      <ul style="margin-bottom:0">
+        <li><strong>Valid:</strong> an active license, and the client it's issued to.</li>
+        <li><strong>Being set up:</strong> paid for, with the first build not yet published.</li>
+        <li><strong>Revoked:</strong> the license no longer covers this package.</li>
+        <li><strong>Not found:</strong> no license has this key, or the domain serves no license file.</li>
+      </ul>
+    </div>
+  </div></section>
+</main>
+<footer class="site" id="shell-footer"></footer>
+<script src="dummy.js"></script>
+</body>
+</html>

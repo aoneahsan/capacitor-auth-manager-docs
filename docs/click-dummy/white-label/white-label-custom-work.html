@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Custom work (dummy)</title>
+<link rel="stylesheet" href="dummy.css">
+</head>
+<body data-page="custom">
+<header class="nav" id="shell-nav"></header>
+<main>
+  <section class="hero"><div class="wrap">
+    <p class="eyebrow">White-label · custom work</p>
+    <h1>Changes only your apps need</h1>
+    <p class="lead">Custom work sits outside the license and is quoted on its own. Describe what your apps need and
+      we'll reply with a scope and a price.</p>
+  </div></section>
+  <section class="block"><div class="wrap split">
+    <div>
+      <h2>What teams ask for</h2>
+      <div style="display:grid;gap:1rem">
+        <div class="card"><h3>A provider before it's enabled upstream</h3><p>Fourteen providers are in the source but not yet registered. We can verify and enable one in your build first.</p></div>
+        <div class="card"><h3>A different credential handoff</h3><p>Changes to how the credential reaches your backend, for a session model the stock package doesn't cover.</p></div>
+        <div class="card"><h3>Your own adapter</h3><p>A wrapper for a framework or state library your apps use, beside the React, Vue and Angular adapters.</p></div>
+      </div>
+    </div>
+    <div>
+      <h2>Tell us about it</h2>
+      <form class="f" data-simulate="Sent. We'll reply to your email with questions or a quote.">
+        <div class="row2">
+          <label>Name<input name="name" required autocomplete="name"></label>
+          <label>Work email<input name="email" type="email" required autocomplete="email"></label>
+        </div>
+        <label>Company <span class="opt">(optional)</span><input name="company" autocomplete="organization"></label>
+        <label>What do you need?<div class="area" contenteditable="true" role="textbox" aria-multiline="true"></div></label>
+        <div class="actions"><button class="btn btn-primary" type="submit">Send</button></div>
+      </form>
+      <div class="status" hidden role="status"></div>
+    </div>
+  </div></section>
+</main>
+<footer class="site" id="shell-footer"></footer>
+<script src="dummy.js"></script>
+</body>
+</html>

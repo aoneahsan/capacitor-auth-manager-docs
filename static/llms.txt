@@ -12,6 +12,18 @@ Web One-Tap returns an ID token; web popup returns an access token; auto may ret
 - [Raw Markdown manifest](https://capacitor-auth-manager-docs.aoneahsan.com/raw/manifest.json): release version and raw URL for every published page.
 - [Full documentation](https://capacitor-auth-manager-docs.aoneahsan.com/llms-full.txt): all published pages as plain text.
 
+## White-label & licensing
+
+Capacitor Auth Manager can be published under a buyer's npm scope as a managed, rebranded build, with its docs on the buyer's domain and the right to use the product name and logo. The code stays MIT; there is no buyout and licenses are not exclusive. Prices come live from the licensing service on the pricing page.
+
+- [White-label overview](https://capacitor-auth-manager-docs.aoneahsan.com/white-label): what a managed build changes and who it suits.
+- [License pricing](https://capacitor-auth-manager-docs.aoneahsan.com/white-label/pricing): live price and the request form.
+- [Updates and renewals](https://capacitor-auth-manager-docs.aoneahsan.com/white-label/updates): included updates, renewal plans, renew by license key.
+- [License terms](https://capacitor-auth-manager-docs.aoneahsan.com/white-label/license-terms): the agreement in plain words.
+- [Custom work](https://capacitor-auth-manager-docs.aoneahsan.com/white-label/custom-work): changes only one buyer needs, quoted separately.
+- [Verify a license](https://capacitor-auth-manager-docs.aoneahsan.com/verify-license): check a CAPAUTH-WL- key or a docs domain.
+- [Terms of Service](https://capacitor-auth-manager-docs.aoneahsan.com/terms) and [Privacy Policy](https://capacitor-auth-manager-docs.aoneahsan.com/privacy).
+
 ## Pages
 
 - [About the Author](https://capacitor-auth-manager-docs.aoneahsan.com/about-the-author): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/about-the-author.md
@@ -30,6 +42,12 @@ Web One-Tap returns an ID token; web popup returns an access token; auto may ret
 - [Quick Start](https://capacitor-auth-manager-docs.aoneahsan.com/getting-started/quick-start): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/getting-started/quick-start.md
 - [AI integration guide](https://capacitor-auth-manager-docs.aoneahsan.com/integration/ai): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/integration/ai.md
 - [Capacitor Auth Manager](https://capacitor-auth-manager-docs.aoneahsan.com/intro): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/intro.md
+- [What a managed build contains](https://capacitor-auth-manager-docs.aoneahsan.com/licensing/delivery): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/licensing/delivery.md
+- [White-label questions](https://capacitor-auth-manager-docs.aoneahsan.com/licensing/faq): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/licensing/faq.md
+- [White-label and licensing](https://capacitor-auth-manager-docs.aoneahsan.com/licensing/overview): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/licensing/overview.md
+- [Setup, from request to first publish](https://capacitor-auth-manager-docs.aoneahsan.com/licensing/setup): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/licensing/setup.md
+- [Updates and renewals](https://capacitor-auth-manager-docs.aoneahsan.com/licensing/updates): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/licensing/updates.md
+- [Verifying a license](https://capacitor-auth-manager-docs.aoneahsan.com/licensing/verify): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/licensing/verify.md
 - [Android platform](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/android): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/platforms/android.md
 - [iOS platform](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/ios): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/platforms/ios.md
 - [Web platform](https://capacitor-auth-manager-docs.aoneahsan.com/platforms/web): raw Markdown at https://capacitor-auth-manager-docs.aoneahsan.com/raw/platforms/web.md

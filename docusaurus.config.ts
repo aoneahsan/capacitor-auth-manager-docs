@@ -1,6 +1,8 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import type { Plugin } from '@docusaurus/types';
+import { fetchCatalog } from './src/services/licensing/client';
 
 // ---------------------------------------------------------------------------
 // Capacitor Auth Manager — Documentation site config
@@ -12,6 +14,26 @@ const SITE_URL = 'https://capacitor-auth-manager-docs.aoneahsan.com';
 const NPM_URL = 'https://www.npmjs.com/package/capacitor-auth-manager';
 const REPO_URL = 'https://github.com/aoneahsan/capacitor-auth-manager';
 const DOCS_REPO_URL = 'https://github.com/aoneahsan/capacitor-auth-manager-docs';
+
+/**
+ * Reads the white-label catalogue once per build so the prerendered pages carry the licensing
+ * service's prices. A failed read leaves `catalog: null`, and the pages render the request form.
+ */
+function whiteLabelCatalog(): Plugin {
+  return {
+    name: 'white-label-catalog',
+    async loadContent() {
+      try {
+        return await fetchCatalog();
+      } catch {
+        return null;
+      }
+    },
+    async contentLoaded({ content, actions }) {
+      actions.setGlobalData({ catalog: content });
+    },
+  };
+}
 
 const config: Config = {
   title: 'Capacitor Auth Manager Docs',
@@ -132,6 +154,7 @@ const config: Config = {
     },
   },
   themes: ['@docusaurus/theme-mermaid'],
+  plugins: [whiteLabelCatalog],
 
   presets: [
     [
@@ -151,6 +174,7 @@ const config: Config = {
             'MANUAL-TASKS.md',
             'PACKAGES.md',
             'story/**',
+            'click-dummy/**',
           ],
           routeBasePath: '/',
           editUrl: `${DOCS_REPO_URL}/edit/main/`,
@@ -166,6 +190,7 @@ const config: Config = {
           changefreq: 'weekly',
           priority: 0.7,
           lastmod: 'date',
+          ignorePatterns: ['/white-label/thank-you'],
         },
       } satisfies Preset.Options,
     ],
@@ -228,6 +253,7 @@ const config: Config = {
         },
         { to: '/getting-started/quick-start', label: 'Quick Start', position: 'left' },
         { to: '/api/auth-singleton', label: 'API', position: 'left' },
+        { to: '/white-label', label: 'White-label', position: 'right' },
         { to: '/about-the-author', label: 'Author', position: 'right' },
         { href: NPM_URL, label: 'npm', position: 'right' },
         { href: DOCS_REPO_URL, label: 'GitHub', position: 'right' },
@@ -251,6 +277,9 @@ const config: Config = {
             { label: 'npm package', href: NPM_URL },
             { label: 'Source repository', href: REPO_URL },
             { label: 'Docs source', href: DOCS_REPO_URL },
+            { label: 'White-label', to: '/white-label' },
+            { label: 'Verify a license', to: '/verify-license' },
+            { label: 'Terms of Service', to: '/terms' },
             { label: 'Privacy Policy', to: '/privacy' },
           ],
         },

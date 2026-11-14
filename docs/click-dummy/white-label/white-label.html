@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>White-label Capacitor Auth Manager under your npm name (dummy)</title>
+<link rel="stylesheet" href="dummy.css">
+</head>
+<body data-page="overview">
+<header class="nav" id="shell-nav"></header>
+<main>
+  <section class="hero"><div class="wrap">
+    <p class="eyebrow">npm install @your-scope/auth</p>
+    <h1>Capacitor Auth Manager, published under your name</h1>
+    <p class="lead">Your app teams install your package, read docs on your domain and file issues with you. We rename the
+      package across npm, iOS and Android, publish each release under your scope and keep it in step with
+      <code>capacitor-auth-manager</code>. The code stays MIT. What you pay for is that work, and the right to say your
+      package is built on Capacitor Auth Manager, logo included.</p>
+    <div class="btns">
+      <a class="btn btn-primary" href="white-label-pricing.html">See the license price</a>
+      <a class="btn btn-outline" href="white-label-custom-work.html">Ask about custom work</a>
+    </div>
+  </div></section>
+
+  <section class="block"><div class="wrap split">
+    <div>
+      <h2>What changes in your build</h2>
+      <p>Four platforms carry the package's name, so a rebrand touches four places, plus the import line in every app.
+        We make these changes once, then carry them into every release.</p>
+      <p>The API doesn't change. <code>auth.signIn(AuthProvider.GOOGLE)</code> returns the same credential, and your
+        build has the same providers as the release it's built from. In 3.x that's Google on web, iOS and Android.</p>
+    </div>
+    <pre class="diff" aria-label="What a managed build renames"><span class="c">  // package.json</span><span class="d">- "name": "capacitor-auth-manager"</span><span class="a">+ "name": "@acme/sign-in"</span><span class="c">  // CapacitorAuthManager.podspec</span><span class="d">- s.name = 'CapacitorAuthManager'</span><span class="a">+ s.name = 'AcmeSignIn'</span><span class="c">  // android/build.gradle</span><span class="d">- namespace = "com.aoneahsan.capacitor_auth_manager"</span><span class="a">+ namespace = "com.acme.sign_in"</span><span class="c">  // src/capacitor-plugin.ts</span><span class="d">- registerPlugin('CapacitorAuthManager', …)</span><span class="a">+ registerPlugin('AcmeSignIn', …)</span><span class="c">  // your app</span><span class="d">- import { auth, AuthProvider } from 'capacitor-auth-manager';</span><span class="a">+ import { auth, AuthProvider } from '@acme/sign-in';</span></pre>
+  </div></section>
+
+  <section class="block" style="background:var(--surface)"><div class="wrap">
+    <h2>What we run for you</h2>
+    <div class="cards">
+      <div class="card"><h3>Publishing under your scope</h3><p>Each release goes to npm as your package, with your name in the README, the package metadata and the changelog.</p></div>
+      <div class="card"><h3>Every upstream release, carried over</h3><p>When <code>capacitor-auth-manager</code> ships a patch, a feature or a major, we apply your rename to it and check the packed tarball, not only the source tree, before it's published.</p></div>
+      <div class="card"><h3>Docs on your domain</h3><p>This documentation, rebranded to your package name and logo, hosted on a domain you choose.</p></div>
+      <div class="card"><h3>The name and the logo</h3><p>The right to say your package is built on Capacitor Auth Manager and to show its logo. The MIT license doesn't grant that.</p></div>
+      <div class="card"><h3>A license anyone can check</h3><p>Your docs domain serves a license file, and anyone can confirm it on the <a href="verify-license.html">verify page</a>.</p></div>
+      <div class="card"><h3>One contact for changes</h3><p>Work only your apps need, from an earlier provider to a different credential handoff, is <a href="white-label-custom-work.html">quoted separately</a>.</p></div>
+    </div>
+  </div></section>
+
+  <section class="block"><div class="wrap split">
+    <div class="note">
+      <h2 style="margin-top:0">The code is already yours to fork</h2>
+      <p>Anyone can fork <code>capacitor-auth-manager</code> and publish it under another name today. The MIT license
+        allows it. A license makes sense when you'd rather not own that fork: four platforms' identifiers on every
+        release, Google's SDK changes, and docs that keep up.</p>
+      <p style="margin-bottom:0">The source is already open, so there's no buyout, and a license isn't exclusive. We
+        may license the package to other teams too.</p>
+    </div>
+    <div>
+      <h2>Price</h2>
+      <p class="price"><span data-price-group="package">…</span> <small>for the <span data-group-label="package">npm package</span></small></p>
+      <p>Includes <span data-months>…</span> months of updates from the purchase date. After that, renewals keep new
+        releases coming; see <a href="white-label-updates.html">updates and renewals</a>.</p>
+      <a class="btn btn-primary" href="white-label-pricing.html">Request a license</a>
+    </div>
+  </div></section>
+
+  <section class="block" style="background:var(--surface)"><div class="wrap">
+    <h2>Who it suits</h2>
+    <div class="cards">
+      <div class="card"><h3>A company with several Capacitor apps</h3><p>One sign-in package across your apps, carrying your company's name.</p></div>
+      <div class="card"><h3>An agency</h3><p>A branded sign-in SDK you hand to each client's app team.</p></div>
+      <div class="card"><h3>A platform with its own SDK</h3><p>Google sign-in for your customers' Capacitor apps, under your package name.</p></div>
+    </div>
+  </div></section>
+
+  <section class="block"><div class="wrap prose">
+    <h2>Questions</h2>
+    <details><summary>Do we get the source code?</summary><p>It's already public under MIT on GitHub. The license covers our work on your build and the right to the name and logo.</p></details>
+    <details><summary>Which providers does our build include?</summary><p>The same as the upstream release it's built from. In 3.x that's Google on web, iOS and Android.</p></details>
+    <details><summary>Is the license exclusive?</summary><p>No. We may license the package to other teams.</p></details>
+    <details><summary>What happens after the included months?</summary><p>The versions already published under your name stay on npm and keep working. New releases need a renewal.</p></details>
+    <details><summary>How does someone check our license?</summary><p>By your license key or your docs domain, on the <a href="verify-license.html">verify page</a>.</p></details>
+    <p>Setup steps and delivery details are in the <a href="#">White-label docs</a>. The full agreement is in the
+      <a href="white-label-license-terms.html">license terms</a>.</p>
+  </div></section>
+</main>
+<footer class="site" id="shell-footer"></footer>
+<script src="dummy.js"></script>
+</body>
+</html>

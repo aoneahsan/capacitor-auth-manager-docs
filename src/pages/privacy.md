@@ -1,11 +1,11 @@
 ---
 title: Privacy Policy
-description: What the capacitor-auth-manager package does with sign-in data inside your app, what it never sends anywhere, and what this documentation site records.
+description: What the capacitor-auth-manager package does with sign-in data inside your app, what it never sends anywhere, what this documentation site records, and what its white-label pages send.
 ---
 
 # Privacy Policy
 
-**Last updated:** November 13, 2026 · **Applies to:** the `capacitor-auth-manager` npm package (3.x) and this documentation site.
+**Last updated:** November 14, 2026 · **Applies to:** the `capacitor-auth-manager` npm package (3.x), this documentation site and its white-label license pages.
 
 Capacitor Auth Manager is a library. It runs inside the app that installs it, and it has no server of its own. We, the Capacitor Auth Manager team, never receive the credentials, profiles or tokens it handles.
 
@@ -37,7 +37,15 @@ After sign-in, the package stores a session snapshot (the user's profile fields,
 
 ## This documentation site
 
-capacitor-auth-manager-docs.aoneahsan.com is a static site on GitHub Pages. It sets no cookies and loads no analytics. GitHub serves the pages and sees the usual request details, such as your IP address, under its own privacy statement.
+capacitor-auth-manager-docs.aoneahsan.com is a static site on GitHub Pages. It sets no cookies and loads no analytics. GitHub serves the pages and sees the usual request details, such as your IP address, under its own privacy statement. The white-label and verify pages are the one place the site sends requests elsewhere, described next.
+
+## White-label and license pages
+
+The pages under `/white-label` and the `/verify-license` page ask our licensing service for prices, quotes and license checks, straight from your browser, so your IP address and the request reach it. When you send a form there, it receives what you typed: your name, email, company, npm scope, docs domain and message. When online payment is open, continuing to pay takes you to the payment provider's own checkout page, under its own privacy policy.
+
+For a license we keep your name, email, company, domain, order and license key, to deliver the build, answer verification checks and send renewal notices. A public verification shows only the client name, the licensed domains, the license type, its status and its dates, never your email or the price.
+
+Payments for licenses, renewals and custom work are final. NO REFUNDS. The [Terms of Service](/terms) carry the full terms.
 
 ## Contact
 

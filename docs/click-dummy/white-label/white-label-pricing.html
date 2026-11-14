@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>License pricing (dummy)</title>
+<link rel="stylesheet" href="dummy.css">
+</head>
+<body data-page="pricing">
+<header class="nav" id="shell-nav"></header>
+<main>
+  <section class="hero"><div class="wrap">
+    <p class="eyebrow">White-label · pricing</p>
+    <h1>License pricing</h1>
+    <p class="lead">One license covers the npm package, with its web code and its iOS and Android plugin code. Prices come
+      straight from our licensing service, and the quote below is the amount you'd pay.</p>
+  </div></section>
+
+  <section class="block"><div class="wrap split">
+    <div>
+      <h2>What you're licensing</h2>
+      <div id="groups" role="group" aria-label="Platform groups" style="display:grid;gap:1rem"></div>
+      <h2 style="margin-top:2rem">Your quote</h2>
+      <div class="quote" id="quote-out" aria-live="polite">Asking for a quote…</div>
+    </div>
+
+    <div>
+      <h2 data-request>Request a license</h2>
+      <h2 data-checkout hidden>Your details</h2>
+      <p data-request>Tell us the npm scope you'll publish under. We reply by email with the agreement and the next steps.</p>
+      <form class="f" data-simulate="Request sent. We'll reply to your email with the agreement and the next steps.">
+        <div class="row2">
+          <label>Name<input name="name" required autocomplete="name"></label>
+          <label>Work email<input name="email" type="email" required autocomplete="email"></label>
+        </div>
+        <div class="row2">
+          <label>Company <span class="opt">(optional)</span><input name="company" autocomplete="organization"></label>
+          <label>npm scope <span class="opt">(optional)</span><input name="scope" placeholder="@acme"></label>
+        </div>
+        <label>Docs domain <span class="opt">(optional)</span><input name="domain" placeholder="auth-docs.acme.com"></label>
+        <label>Anything we should know <span class="opt">(optional)</span><div class="area" contenteditable="true" role="textbox" aria-multiline="true"></div></label>
+        <div class="actions">
+          <a class="btn btn-outline" href="white-label.html">Back</a>
+          <button class="btn btn-primary" type="submit" data-request>Send request</button>
+          <button class="btn btn-primary" type="submit" data-checkout hidden>Continue to payment</button>
+        </div>
+        <p class="consent">By continuing, you agree to our Terms of Service and Privacy Policy.</p>
+      </form>
+      <div class="status" hidden role="status"></div>
+    </div>
+  </div></section>
+</main>
+<footer class="site" id="shell-footer"></footer>
+<script src="dummy.js"></script>
+</body>
+</html>

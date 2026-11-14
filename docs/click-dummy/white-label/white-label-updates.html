@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Updates and renewals (dummy)</title>
+<link rel="stylesheet" href="dummy.css">
+</head>
+<body data-page="updates">
+<header class="nav" id="shell-nav"></header>
+<main>
+  <section class="hero"><div class="wrap">
+    <p class="eyebrow">White-label · updates</p>
+    <h1>Updates and renewals</h1>
+    <p class="lead">An update is a release of <code>capacitor-auth-manager</code>, rebuilt with your rename and published
+      under your scope. Your license includes <span data-months>…</span> months of them.</p>
+  </div></section>
+
+  <section class="block"><div class="wrap split">
+    <div>
+      <h2>What counts as an update</h2>
+      <ul>
+        <li><strong>A patch,</strong> like 3.1.1: fixes, same API.</li>
+        <li><strong>A feature release,</strong> like 3.2.0, which added Google's rendered button flow.</li>
+        <li><strong>A major,</strong> like 3.0.0, published with its migration notes on your docs site.</li>
+        <li><strong>A provider enabled upstream,</strong> once it's verified there, reaches your build in the next release.</li>
+      </ul>
+      <p>The included months run from the purchase date. Without a renewal, the versions already published under your
+        name stay on npm and keep working. New releases stop until you renew.</p>
+      <h2>Renewals</h2>
+      <table class="t"><thead><tr><th>Length</th><th style="text-align:right">Price</th></tr></thead><tbody id="renewal-rows"></tbody></table>
+      <p>A renewal starts from the later of today and your current end date, so renewing early loses nothing.</p>
+    </div>
+    <div>
+      <h2>Renew by license key</h2>
+      <p data-request>Enter your key and the email it was issued to. We reply with the renewal and its payment link.</p>
+      <form class="f" data-simulate="Renewal request sent. We'll reply to the license email.">
+        <label data-request>Name<input name="name" required autocomplete="name"></label>
+        <label>License key<input name="key" required placeholder="CAPAUTH-WL-…" autocomplete="off"></label>
+        <label>License email<input name="email" type="email" required autocomplete="email"></label>
+        <label>Length<select id="renew-months" name="months"></select></label>
+        <div class="actions">
+          <a class="btn btn-outline" href="white-label.html">Back</a>
+          <button class="btn btn-primary" type="submit" data-request>Request renewal</button>
+          <button class="btn btn-primary" type="submit" data-checkout hidden>Continue to payment</button>
+        </div>
+        <p class="consent">By continuing, you agree to our Terms of Service and Privacy Policy.</p>
+      </form>
+      <div class="status" hidden role="status"></div>
+    </div>
+  </div></section>
+</main>
+<footer class="site" id="shell-footer"></footer>
+<script src="dummy.js"></script>
+</body>
+</html>

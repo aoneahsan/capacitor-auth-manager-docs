@@ -1,0 +1,326 @@
+/* White-label pages. Built on the site's Infima tokens (src/css/custom.css) and the homepage's
+   card and hero treatment, so these pages read as part of the same docs site. */
+
+.hero {
+  padding: 4rem 0 3rem;
+  background: linear-gradient(180deg, var(--cam-surface-brand) 0%, transparent 100%);
+}
+
+.eyebrow {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.85rem;
+  color: var(--ifm-color-primary);
+  margin: 0 0 0.75rem;
+}
+
+.title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.1;
+  margin: 0 0 1rem;
+  max-width: 22ch;
+}
+
+.lead {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: var(--ifm-color-emphasis-700);
+  max-width: 64ch;
+  margin: 0 0 1.5rem;
+}
+
+.buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.block {
+  padding: 3rem 0;
+}
+
+.blockAlt {
+  padding: 3rem 0;
+  background: var(--ifm-color-emphasis-100);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  padding: 1.25rem 1.4rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 12px;
+  background: var(--ifm-background-surface-color);
+}
+
+.card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+}
+
+.card p {
+  margin: 0;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.95rem;
+}
+
+.note {
+  padding: 1.1rem 1.4rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-left: 4px solid var(--ifm-color-primary);
+  border-radius: 12px;
+  background: var(--cam-surface-brand);
+}
+
+.note > :last-child {
+  margin-bottom: 0;
+}
+
+.price {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.priceFor {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.groupCard {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 44px;
+  padding: 1.1rem 1.25rem;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  border: 2px solid var(--ifm-color-emphasis-300);
+  border-radius: 12px;
+  background: var(--ifm-background-surface-color);
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.groupCard[aria-checked='true'] {
+  border-color: var(--ifm-color-primary);
+  background: var(--cam-surface-brand);
+}
+
+.groupCard:focus-visible {
+  outline: 3px solid var(--ifm-color-primary-lighter);
+  outline-offset: 2px;
+}
+
+.tick {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 0.15rem;
+  border: 2px solid var(--ifm-color-emphasis-400);
+  border-radius: 6px;
+}
+
+.groupCard[aria-checked='true'] .tick {
+  border-color: var(--ifm-color-primary);
+  background: var(--ifm-color-primary);
+  box-shadow: inset 0 0 0 3px var(--ifm-background-surface-color);
+}
+
+.muted {
+  color: var(--ifm-color-emphasis-700);
+}
+
+.quote {
+  padding: 1.25rem 1.4rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 12px;
+  background: var(--ifm-background-surface-color);
+}
+
+.quote dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem 0;
+  margin: 0 0 0.75rem;
+}
+
+.quote dd {
+  margin: 0;
+  padding-left: 1rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.total {
+  font-weight: 700;
+  font-size: 1.15rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.input {
+  min-height: 44px;
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+  font-weight: 400;
+  color: var(--ifm-font-color-base);
+  border: 1px solid var(--ifm-color-emphasis-400);
+  border-radius: 8px;
+  background: var(--ifm-background-color);
+}
+
+.input:focus-visible {
+  outline: 3px solid var(--ifm-color-primary-lighter);
+  outline-offset: 1px;
+  border-color: var(--ifm-color-primary);
+}
+
+.area {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.consent {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.status {
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 10px;
+}
+
+.statusOk {
+  border-color: var(--ifm-color-success);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.statusBad {
+  border-color: var(--ifm-color-danger);
+  background: rgba(239, 68, 68, 0.07);
+}
+
+.table {
+  display: table;
+  width: 100%;
+}
+
+.table td:last-child,
+.table th:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tab {
+  min-height: 44px;
+  padding: 0 1rem;
+  font: inherit;
+  color: inherit;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tab[aria-checked='true'] {
+  font-weight: 600;
+  color: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+  background: var(--cam-surface-brand);
+}
+
+.faq {
+  max-width: 760px;
+}
+
+.faq details {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.faq summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 996px) {
+  .hero {
+    padding: 2.5rem 0 2rem;
+  }
+
+  .split,
+  .cards,
+  .row2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Infima's default .button is 35px tall; every white-label action keeps a 44px target. */
+.tap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
