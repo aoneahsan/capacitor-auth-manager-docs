@@ -2106,6 +2106,209 @@ Honesty matters more than a long feature list when you are wiring auth.
 Built and maintained by [Ahsan Mahmood](https://aoneahsan.com) ([GitHub](https://github.com/aoneahsan) · [npm](https://www.npmjs.com/~aoneahsan)).
 
 
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/licensing/delivery -->
+
+---
+title: What a managed build contains
+sidebar_label: What you get
+description: The parts of a white-label Capacitor Auth Manager build, from the renamed npm package and its iOS and Android plugin code to the docs site and license file, and what stays outside it.
+keywords: [white label capacitor plugin contents, rebranded npm package, capacitor plugin rename podspec namespace]
+last_update:
+  date: 2026-11-14
+  author: Capacitor Auth Manager team
+---
+
+# What a managed build contains
+
+## The package, renamed
+
+The package keeps the same layout as `capacitor-auth-manager`: ESM and CommonJS builds with type declarations, and the `react`, `vue`, `angular`, `core` and `providers/web` entry points. Every place the name appears is changed to yours:
+
+| Where | Upstream | Your build |
+|---|---|---|
+| npm name | `capacitor-auth-manager` | `@your-scope/your-name` |
+| iOS podspec | `CapacitorAuthManager` | your pod name |
+| Android namespace | `com.aoneahsan.capacitor_auth_manager` | your namespace |
+| Capacitor plugin name | `registerPlugin('CapacitorAuthManager')` | your plugin name |
+| Default storage key prefix | `cap_auth_` | your prefix |
+
+The iOS and Android plugin code ships inside the npm package, as it does upstream, so your apps pick it up with `npx cap sync`.
+
+## Around the package
+
+- README, package metadata and changelog in your name.
+- These docs, rebranded, on a domain you choose.
+- A license file and its PDF certificate on that docs domain, so anyone can [verify the license](./verify.md).
+
+## Not included
+
+- Your apps, and their Play or App Store accounts.
+- The backend that turns a credential into a session. That stays your code, as it is with the upstream package.
+- Providers that aren't enabled upstream. One can be enabled early for you as [custom work](/white-label/custom-work).
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/licensing/faq -->
+
+---
+title: White-label questions
+sidebar_label: Questions
+description: Answers about white-label Capacitor Auth Manager builds, covering source code, providers, exclusivity, lapsed updates and forks.
+keywords: [capacitor-auth-manager white label faq, mit license brand right, white label exclusivity]
+last_update:
+  date: 2026-11-14
+  author: Capacitor Auth Manager team
+---
+
+# White-label questions
+
+## Do we get the source code?
+
+It's already public under MIT on [GitHub](https://github.com/aoneahsan/capacitor-auth-manager). The license covers our work on your build and the right to use the Capacitor Auth Manager name and logo.
+
+## Couldn't we just fork it?
+
+Yes, MIT allows that. A license makes sense when you'd rather not maintain the fork: the rename across npm, iOS and Android on every release, Google SDK changes, and the docs.
+
+## Which providers does our build include?
+
+The same as the upstream release it's built from. In 3.x that's Google on web, iOS and Android.
+
+## Is the license exclusive?
+
+No. We may license the package to other teams, and there's no buyout of open code.
+
+## What happens if we stop renewing?
+
+The versions already published under your name stay on npm and keep working. New releases stop.
+
+## Can you change the package for us?
+
+Yes, as [custom work](/white-label/custom-work), quoted separately from the license.
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/licensing/overview -->
+
+---
+title: White-label and licensing
+sidebar_label: Overview
+description: How a white-label license for Capacitor Auth Manager works, what a managed build under your npm scope includes, and where prices and terms live.
+keywords: [capacitor-auth-manager white label, rebrand capacitor auth plugin, white label npm package, capacitor google sign-in sdk license]
+last_update:
+  date: 2026-11-14
+  author: Capacitor Auth Manager team
+---
+
+# White-label and licensing
+
+A white-label license gets you Capacitor Auth Manager published under your own npm name. We rename the package across npm, iOS and Android, publish each release to your scope, host these docs on your domain with your name and logo, and keep the build in step with `capacitor-auth-manager`.
+
+The code is public under MIT, and that doesn't change. Anyone can fork it. The license buys the managed work and the right to say your package is built on Capacitor Auth Manager, logo included, which MIT doesn't grant. Because the source is already open there's no buyout, and a license isn't exclusive.
+
+## What stays the same
+
+Your build has the same API and the same providers as the release it's built from. `auth.signIn(AuthProvider.GOOGLE)` returns the same credential, and in 3.x Google is the only enabled provider, on web, iOS and Android. Exchanging that credential for a session is still your backend's job.
+
+## In this section
+
+- [What a managed build contains](./delivery.md)
+- [Setup, from request to first publish](./setup.md)
+- [Updates and renewals](./updates.md)
+- [Verifying a license](./verify.md)
+- [Questions](./faq.md)
+
+The price is on the [pricing page](/white-label/pricing), quoted live by our licensing service. The agreement is in the [license terms](/white-label/license-terms).
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/licensing/setup -->
+
+---
+title: Setup, from request to first publish
+sidebar_label: Setup
+description: The steps from a white-label request to the first Capacitor Auth Manager build published under your npm scope, and what we need from you at each one.
+keywords: [white label setup npm scope, publish rebranded package, docs domain dns]
+last_update:
+  date: 2026-11-14
+  author: Capacitor Auth Manager team
+---
+
+# Setup, from request to first publish
+
+1. **Request.** Send the form on the [pricing page](/white-label/pricing). We reply by email with the agreement and the payment link.
+2. **Names.** Tell us the npm scope and package name, the iOS pod name, the Android namespace and the plugin name you want. If you leave any out, we propose them from your package name.
+3. **Access.** Create the npm organization, or pick an existing one, and add our publishing account to it. You keep ownership of the scope.
+4. **Brand.** Send your logo as SVG and your brand colors. They go into the README and the docs site.
+5. **First build.** We apply the rename to the current release, build it, check the packed tarball and publish it under your scope.
+6. **Docs domain.** We send the DNS record for your docs domain. Once it points to us, the docs and the license file go live there.
+7. **Active.** The license moves from "being set up" to valid, and the [verify page](/verify-license) shows it.
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/licensing/updates -->
+
+---
+title: Updates and renewals
+sidebar_label: Updates and renewals
+description: How releases of capacitor-auth-manager reach a white-label build, how long updates are included, and what happens when they lapse.
+keywords: [white label updates renewal, capacitor-auth-manager releases, renew white label license]
+last_update:
+  date: 2026-11-14
+  author: Capacitor Auth Manager team
+---
+
+# Updates and renewals
+
+Each release of `capacitor-auth-manager` is rebuilt with your rename and published under your scope, with its changelog entry on your docs site. That covers patches, feature releases, majors with their migration notes, and providers as they're enabled upstream.
+
+Updates are included for a set period from the purchase date. After that, a renewal of 3, 6 or 12 months continues them, counted from the later of the renewal date and your current end date, so renewing early loses nothing.
+
+If updates lapse, the versions already published under your name stay on npm and keep working. New releases stop until you renew.
+
+Current renewal prices, and the form to renew with your license key, are on the [updates page](/white-label/updates).
+
+
+<!-- https://capacitor-auth-manager-docs.aoneahsan.com/licensing/verify -->
+
+---
+title: Verifying a license
+sidebar_label: Verify a license
+description: How to check a Capacitor Auth Manager white-label license by its CAPAUTH-WL- key or by the license file its docs domain serves.
+keywords: [verify capacitor auth manager license, white label license file, well-known license json]
+last_update:
+  date: 2026-11-14
+  author: Capacitor Auth Manager team
+---
+
+# Verifying a license
+
+Paste a license key or a docs domain into the [verify page](/verify-license). Verification is run by our licensing service.
+
+## The license file
+
+Every licensed build's docs domain serves two files:
+
+- `/.well-known/capauth-white-label-license.json`
+- `/.well-known/capauth-white-label-license.pdf`, the public certificate
+
+The JSON names the license, so a check by domain can find it:
+
+```json
+{
+  "$schema": "capacitor-auth-manager-white-label-license",
+  "product": "Capacitor Auth Manager",
+  "publicKey": "CAPAUTH-WL-…",
+  "client": "Your company",
+  "domain": "auth-docs.example.com",
+  "verifyUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/verify-license?key=CAPAUTH-WL-…",
+  "issuedAt": "2026-11-14T00:00:00Z"
+}
+```
+
+We add both files when we deploy your docs. You don't need to do anything.
+
+## What a check returns
+
+A check shows the client name, the licensed domains, the license status and its dates. It never shows an email address or a price.
+
+
 <!-- https://capacitor-auth-manager-docs.aoneahsan.com/platforms/android -->
 
 ---

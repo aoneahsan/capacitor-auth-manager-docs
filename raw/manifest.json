@@ -100,6 +100,42 @@
       "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/intro.md"
     },
     {
+      "id": "licensing/delivery",
+      "title": "What a managed build contains",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/licensing/delivery",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/licensing/delivery.md"
+    },
+    {
+      "id": "licensing/faq",
+      "title": "White-label questions",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/licensing/faq",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/licensing/faq.md"
+    },
+    {
+      "id": "licensing/overview",
+      "title": "White-label and licensing",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/licensing/overview",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/licensing/overview.md"
+    },
+    {
+      "id": "licensing/setup",
+      "title": "Setup, from request to first publish",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/licensing/setup",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/licensing/setup.md"
+    },
+    {
+      "id": "licensing/updates",
+      "title": "Updates and renewals",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/licensing/updates",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/licensing/updates.md"
+    },
+    {
+      "id": "licensing/verify",
+      "title": "Verifying a license",
+      "url": "https://capacitor-auth-manager-docs.aoneahsan.com/licensing/verify",
+      "rawUrl": "https://capacitor-auth-manager-docs.aoneahsan.com/raw/licensing/verify.md"
+    },
+    {
       "id": "platforms/android",
       "title": "Android platform",
       "url": "https://capacitor-auth-manager-docs.aoneahsan.com/platforms/android",
