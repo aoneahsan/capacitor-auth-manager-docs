@@ -67,7 +67,7 @@ export interface VerifyResult {
 }
 
 export interface OrderStatus {
-  status: 'pending' | 'paid' | 'failed';
+  status: 'pending' | 'awaiting_payment' | 'payment_submitted' | 'payment_rejected' | 'paid' | 'failed';
   kind: string;
   public_key: string | null;
 }
@@ -119,7 +119,7 @@ export interface Buyer {
   domain?: string;
 }
 
-/** Starts a checkout; the caller sends the browser to the returned URL. */
+/** Opens an order; `checkout_url` is our licensing service's pay page with the bank-transfer details, and the caller sends the browser there. */
 export const startCheckout = (groups: string[], buyer: Buyer, notes?: string) =>
   post<{ checkout_url: string; order_id: string }>(`${product}/checkout`, {
     kind: 'white_label',
@@ -130,7 +130,7 @@ export const startCheckout = (groups: string[], buyer: Buyer, notes?: string) =>
     cancel_path: `/white-label/pricing?groups=${groups.join(',')}`,
   });
 
-/** Starts a renewal checkout for an existing licence key. */
+/** Opens a renewal order for an existing license key; the caller sends the browser to its pay page. */
 export const startRenewal = (publicKey: string, months: number, email: string) =>
   post<{ checkout_url: string; order_id: string }>(`${product}/renewals`, {
     public_key: publicKey,

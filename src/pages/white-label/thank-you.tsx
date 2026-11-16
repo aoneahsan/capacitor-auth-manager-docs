@@ -11,7 +11,7 @@ import styles from '@site/src/components/WhiteLabel/styles.module.css';
 
 const t = (id: string, message: string) => translate({ id: `whiteLabel.thanks.${id}`, message });
 
-/** Where checkout returns. One read of the order on load; the email carries the license, so nothing polls. */
+/** Where the pay page returns. One read of the order on load; a license is issued only once we confirm the transfer, never here; the email carries the license, so nothing polls. */
 export default function WhiteLabelThankYou(): ReactNode {
   const location = useLocation();
   const [order, setOrder] = useState<OrderStatus | null>(null);
@@ -29,7 +29,7 @@ export default function WhiteLabelThankYou(): ReactNode {
       </Head>
       <WlHero eyebrow="White-label" title={t('title', 'Thank you. Check your email.')}>
         <p className={styles.lead}>
-          {t('lead', 'The license key and its certificate go to the email you paid with. Next, we ask for your npm scope and docs domain, then publish your first build.')}
+          {t('lead', 'The license key and its certificate go to the email on your order, once we confirm your transfer. Next, we ask for your npm scope and docs domain, then publish your first build.')}
         </p>
       </WlHero>
       <main className={styles.block}>
@@ -42,7 +42,16 @@ export default function WhiteLabelThankYou(): ReactNode {
             </StatusNote>
           )}
           {order?.status === 'pending' && (
-            <StatusNote tone="neutral">{t('pending', 'The payment is still being confirmed. The email arrives as soon as it is.')}</StatusNote>
+            <StatusNote tone="neutral">{t('pending', 'We have your order. The email arrives once the transfer is confirmed.')}</StatusNote>
+          )}
+          {order?.status === 'awaiting_payment' && (
+            <StatusNote tone="neutral">{t('awaitingPayment', 'We have your order. Send the transfer with the reference on the pay page; your key arrives by email once it’s confirmed.')}</StatusNote>
+          )}
+          {order?.status === 'payment_submitted' && (
+            <StatusNote tone="neutral">{t('paymentSubmitted', 'We have your order and your transfer details. Your key arrives by email once we’ve matched the payment.')}</StatusNote>
+          )}
+          {order?.status === 'payment_rejected' && (
+            <StatusNote tone="neutral">{t('paymentRejected', 'We couldn’t match the payment to this order yet. Check your email; we’ve written with what we need.')}</StatusNote>
           )}
           {order?.status === 'failed' && (
             <StatusNote tone="bad">{t('failed', 'This payment didn’t go through. You can start again from the pricing page.')}</StatusNote>

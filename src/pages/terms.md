@@ -29,9 +29,13 @@ These clauses apply when you buy a white-label license, a renewal or custom work
 8. **Revocation.** A license used outside these terms, or on a package name or domain it doesn't cover, may be revoked.
 9. **Your own costs.** Costs you choose yourself, such as your npm organization, your domain or a paid service you add, are yours.
 
+## How payment works
+
+Licenses, renewals and custom work are paid by bank transfer to our Wise account. Continuing to pay opens our licensing service's pay page, which lists the bank details and the reference to put on your transfer. A transfer counts as paid once we confirm it, and the license is issued then. Sending the transfer, or coming back to this site, doesn't issue it.
+
 ## Payments are final
 
-Every payment for a white-label license, a renewal or custom work is final. NO REFUNDS. A payment reversed through the payment provider or a bank ends the license, or the update time, it paid for.
+Every payment for a white-label license, a renewal or custom work is final. NO REFUNDS. A transfer a bank reverses ends the license, or the update time, it paid for.
 
 ## Privacy
 

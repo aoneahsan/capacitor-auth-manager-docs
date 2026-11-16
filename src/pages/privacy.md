@@ -41,9 +41,9 @@ capacitor-auth-manager-docs.aoneahsan.com is a static site on GitHub Pages. It s
 
 ## White-label and license pages
 
-The pages under `/white-label` and the `/verify-license` page ask our licensing service for prices, quotes and license checks, straight from your browser, so your IP address and the request reach it. When you send a form there, it receives what you typed: your name, email, company, npm scope, docs domain and message. When online payment is open, continuing to pay takes you to the payment provider's own checkout page, under its own privacy policy.
+The pages under `/white-label` and the `/verify-license` page ask our licensing service for prices, quotes and license checks, straight from your browser, so your IP address and the request reach it. When you send a form there, it receives what you typed: your name, email, company, npm scope, docs domain and message. When payment is open, continuing to pay opens our licensing service's pay page with our bank details.
 
-For a license we keep your name, email, company, domain, order and license key, to deliver the build, answer verification checks and send renewal notices. A public verification shows only the client name, the licensed domains, the license type, its status and its dates, never your email or the price.
+For a license we keep your name, email, company, domain, order and license key, to deliver the build, answer verification checks and send renewal notices. License payments are bank transfers to our Wise account. We keep the transfer reference and any receipt you upload, to verify the payment, and our licensing service stores the order. A public verification shows only the client name, the licensed domains, the license type, its status and its dates, never your email or the price.
 
 Payments for licenses, renewals and custom work are final. NO REFUNDS. The [Terms of Service](/terms) carry the full terms.
 
