@@ -2233,7 +2233,7 @@ last_update:
 
 # Setup, from request to first publish
 
-1. **Request.** Send the form on the [pricing page](/white-label/pricing). We reply by email with the agreement and the payment link.
+1. **Order or request.** On the [pricing page](/white-label/pricing), continuing to pay opens our licensing service's pay page with the bank details and the reference for your transfer; the license is issued once we confirm it. While payment isn't open, send the form there instead and we reply by email with the agreement and the payment link.
 2. **Names.** Tell us the npm scope and package name, the iOS pod name, the Android namespace and the plugin name you want. If you leave any out, we propose them from your package name.
 3. **Access.** Create the npm organization, or pick an existing one, and add our publishing account to it. You keep ownership of the scope.
 4. **Brand.** Send your logo as SVG and your brand colors. They go into the README and the docs site.
