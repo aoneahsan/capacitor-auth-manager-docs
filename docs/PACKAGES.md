@@ -1,6 +1,6 @@
 # Package inventory
 
-Last Updated: 2026-11-09
+Last Updated: 2026-11-16 (Node 26.13.1 fleet pass: `.nvmrc` 26.13.1, `engines.node >=26.13.1`; every package already at latest stable). Earlier 2026-11-09
 
 Package manager: Yarn 4.18.1. React and ReactDOM resolve to 19.3.1; Docusaurus remains current at 3.10.2.
 

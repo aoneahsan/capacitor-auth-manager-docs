@@ -19,9 +19,11 @@ in version 3.x; describe disabled providers and OAuth limits honestly. `docs/` o
 Never copy secrets, private environment values, test passwords or unpublished internal records
 into this public repository.
 
+<!-- fleet:node-26-13-1 v1 --> Node 26.13.1 LTS (.nvmrc), packages latest — 2026-11-16
+
 ## Local checks and publishing boundary
 
-Use the manifest's Yarn 4.18.1 with Node 24+. Run `yarn install --immutable`, `yarn typecheck`,
+Use the manifest's Yarn 4.18.1 with Node 26.13.1 LTS (`.nvmrc`). Run `yarn install --immutable`, `yarn typecheck`,
 then `yarn build`. The production build validates Docusaurus links and generates AI-readable
 output. Preview that exact build at desktop and mobile widths, including a direct docs route,
 navigation and browser console, before pushing `main`. Deploy GitHub Pages manually after local
