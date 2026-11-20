@@ -3,6 +3,7 @@ import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import type { Plugin } from '@docusaurus/types';
 import { fetchCatalog } from './src/services/licensing/client';
+import { OTHER_PLATFORMS, platformHref } from './src/data/platforms';
 
 // ---------------------------------------------------------------------------
 // Capacitor Auth Manager — Documentation site config
@@ -11,7 +12,7 @@ import { fetchCatalog } from './src/services/licensing/client';
 // ---------------------------------------------------------------------------
 
 const SITE_URL = 'https://capacitor-auth-manager-docs.aoneahsan.com';
-const NPM_URL = 'https://www.npmjs.com/package/capacitor-auth-manager';
+const NPM_URL = platformHref('npm');
 const REPO_URL = 'https://github.com/aoneahsan/capacitor-auth-manager';
 const DOCS_REPO_URL = 'https://github.com/aoneahsan/capacitor-auth-manager-docs';
 
@@ -255,13 +256,28 @@ const config: Config = {
         { to: '/api/auth-singleton', label: 'API', position: 'left' },
         { to: '/white-label', label: 'White-label', position: 'right' },
         { to: '/about-the-author', label: 'Author', position: 'right' },
-        { href: NPM_URL, label: 'npm', position: 'right' },
+        {
+          type: 'dropdown',
+          label: 'Get Capacitor Auth Manager',
+          position: 'right',
+          items: [
+            ...OTHER_PLATFORMS.map((platform) => ({ label: platform.name, href: platform.href })),
+            { label: 'All apps', to: '/apps' },
+          ],
+        },
         { href: DOCS_REPO_URL, label: 'GitHub', position: 'right' },
       ],
     },
     footer: {
       style: 'dark',
       links: [
+        {
+          title: 'Get Capacitor Auth Manager',
+          items: [
+            ...OTHER_PLATFORMS.map((platform) => ({ label: platform.name, href: platform.href })),
+            { label: 'All apps', to: '/apps' },
+          ],
+        },
         {
           title: 'Documentation',
           items: [
@@ -274,7 +290,6 @@ const config: Config = {
         {
           title: 'Project',
           items: [
-            { label: 'npm package', href: NPM_URL },
             { label: 'Source repository', href: REPO_URL },
             { label: 'Docs source', href: DOCS_REPO_URL },
             { label: 'White-label', to: '/white-label' },

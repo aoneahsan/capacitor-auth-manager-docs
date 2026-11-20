@@ -4,6 +4,7 @@ import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 
+import { PRIMARY_PLATFORM } from '@site/src/data/platforms';
 import styles from './index.module.css';
 
 type Feature = {
@@ -52,13 +53,14 @@ function HomepageHeader(): ReactNode {
           <Link className="button button--secondary button--lg" to="/getting-started/installation">
             Installation
           </Link>
-          <Link
-            className="button button--outline button--lg"
-            href="https://www.npmjs.com/package/capacitor-auth-manager"
-          >
+          <Link className="button button--outline button--lg" href={PRIMARY_PLATFORM.href}>
             View on npm
           </Link>
         </div>
+        <p className={styles.also}>
+          <code>npm install capacitor-auth-manager</code>
+          <Link to="/apps">All apps →</Link>
+        </p>
       </div>
     </header>
   );
