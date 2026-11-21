@@ -2,12 +2,6 @@
 
 > Google sign-in for Capacitor and the web. Documentation for 3.1.1; Google is the only enabled provider. Firebase is managed by the consuming app.
 
-
-## Get Capacitor Auth Manager
-
-- [All apps](https://capacitor-auth-manager-docs.aoneahsan.com/apps): every released surface of Capacitor Auth Manager.
-- [npm](https://www.npmjs.com/package/capacitor-auth-manager)
-
 ## Integration contract
 
 Web One-Tap returns an ID token; web popup returns an access token; auto may return either. Native sign-in returns an ID token. Firebase handoff: GoogleAuthProvider.credential(idToken ?? null, accessToken ?? null). Call auth.prepare(AuthProvider.GOOGLE) before enabling a click handler. Firebase onAuthStateChanged owns protected routes. The package does not verify JWT signatures.
